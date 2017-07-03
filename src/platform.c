@@ -45,6 +45,10 @@ enum platform platform_check(char* name) {
     }
   }
   #endif
+  #ifdef HAVE_SDL
+  if (std || strcmp(name, "sdl") == 0)
+    return SDL;
+  #endif
   #ifdef HAVE_PI
   if (std || strcmp(name, "pi") == 0) {
     void *handle = dlopen("libmoonlight-pi.so", RTLD_NOW | RTLD_GLOBAL);
@@ -76,10 +80,7 @@ enum platform platform_check(char* name) {
     return X11;
   }
   #endif
-  #ifdef HAVE_SDL
-  if (std || strcmp(name, "sdl") == 0)
-    return SDL;
-  #endif
+  
   if (strcmp(name, "fake") == 0)
     return FAKE;
 

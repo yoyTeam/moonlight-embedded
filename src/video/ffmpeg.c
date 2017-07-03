@@ -34,6 +34,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <libavcodec/avcodec.h>
+
+
 // General decoder and renderer state
 static AVPacket pkt;
 static AVCodec* decoder;

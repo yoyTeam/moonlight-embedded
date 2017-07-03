@@ -39,4 +39,5 @@ void sdl_loop();
 SDL_mutex *mutex;
 int sdlCurrentFrame, sdlNextFrame;
 
+
 #endif /* HAVE_SDL */

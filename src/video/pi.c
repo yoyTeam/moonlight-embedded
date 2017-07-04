@@ -130,7 +130,7 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
   }
 
   /* add texture */
-  if (OMX_UseEGLImage(ILC_GET_HANDLE(video_decode), &buf, 221, NULL, eglImage) != OMX_ErrorNone)
+  if (OMX_UseEGLImage(ILC_GET_HANDLE(video_decode), &buf, 130, NULL, eglImage) != OMX_ErrorNone)
   {
       printf("OMX_UseEGLImage failed.\n");
       return -2;

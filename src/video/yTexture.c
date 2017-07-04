@@ -410,6 +410,8 @@ void texture_renderer_setup(void *elgTexture) {
 
    // initialise the OGLES texture(s)
    init_textures(state);
+
+   eglTexture = eglImage;
 }
 
 void texture_renderer_cleanup() {

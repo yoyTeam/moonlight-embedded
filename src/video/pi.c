@@ -275,7 +275,7 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
     }
 
     /* add texture */
-    if (OMX_UseEGLImage(ILC_GET_HANDLE(video_decode), &buf, 221, NULL, eglImage) != OMX_ErrorNone)
+    if (OMX_UseEGLImage(ILC_GET_HANDLE(video_render), &buf, 221, NULL, eglImage) != OMX_ErrorNone)
     {
         printf("OMX_UseEGLImage failed.\n");
         return -2;

@@ -260,16 +260,26 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
       exit(EXIT_FAILURE);
     }
 
-    ilclient_change_component_state(video_render, OMX_StateExecuting);
+    // Enable the output port and tell egl_render to use the texture as a buffer
+    //ilclient_enable_port(egl_render, 221); THIS BLOCKS SO CAN'T BE USED
+    if (OMX_SendCommand(ILC_GET_HANDLE(video_render), OMX_CommandPortEnable, 221, NULL) != OMX_ErrorNone)
+    {
+        printf("OMX_CommandPortEnable failed.\n");
+        exit(1);
+    }
 
     /* add texture */
-    if (OMX_UseEGLImage(ILC_GET_HANDLE(video_decode), &buf, 130, NULL, eglImage) != OMX_ErrorNone)
+    if (OMX_UseEGLImage(ILC_GET_HANDLE(video_decode), &buf, 221, NULL, eglImage) != OMX_ErrorNone)
     {
         printf("OMX_UseEGLImage failed.\n");
         return -2;
     }  
 
     texture_renderer_submit_decode_unit();
+
+    ilclient_change_component_state(video_render, OMX_StateExecuting);
+
+    
   }
 
   if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_decode), buf) != OMX_ErrorNone){

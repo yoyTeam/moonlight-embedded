@@ -39,11 +39,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ilclient.h>
 #include <bcm_host.h>
 
+#include "yTexture.h"
+
 #define MAX_DECODE_UNIT_SIZE 262144
 
 static TUNNEL_T tunnel[2];
 static COMPONENT_T *list[3];
 static ILCLIENT_T *client;
+static void* eglImage = 0;
 
 static COMPONENT_T *video_decode = NULL, *video_scheduler = NULL, *video_render = NULL;
 
@@ -120,6 +123,19 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
     return -2;
   }
 
+  texture_renderer_setup(eglImage);
+  if(eglImage == 0) {    
+    printf("eglImage is null.\n");
+    return -2;
+  }
+
+  /* add texture */
+  if (OMX_UseEGLImage(ILC_GET_HANDLE(video_decode), &buf, 221, NULL, eglImage) != OMX_ErrorNone)
+  {
+      printf("OMX_UseEGLImage failed.\n");
+      return -2;
+  }  
+
   OMX_CONFIG_LATENCYTARGETTYPE latencyTarget;
   memset(&latencyTarget, 0, sizeof(OMX_CONFIG_LATENCYTARGETTYPE));
   latencyTarget.nSize = sizeof(OMX_PARAM_PORTDEFINITIONTYPE);
@@ -177,6 +193,8 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
 static void decoder_renderer_cleanup() {
   int status = 0;
 
+  texture_renderer_cleanup();
+
   if((buf = ilclient_get_input_buffer(video_decode, 130, 1)) == NULL){
     fprintf(stderr, "Can't get video buffer\n");
     exit(EXIT_FAILURE);
@@ -213,6 +231,8 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
     fprintf(stderr, "Can't get video buffer\n");
     exit(EXIT_FAILURE);
   }
+
+  texture_renderer_submit_decode_unit();
 
   // feed data and wait until we get port settings changed
   dest = buf->pBuffer;

@@ -121,19 +121,6 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
      OMX_SetParameter(ILC_GET_HANDLE(video_decode), OMX_IndexParamBrcmDataUnit, &unit) != OMX_ErrorNone) {
     fprintf(stderr, "Failed to set video parameters\n");
     return -2;
-  }
-
-  texture_renderer_setup(&eglImage);
-  if(eglImage == 0) {    
-    printf("eglImage is null.\n");
-    return -2;
-  }
-
-  /* add texture */
-  if (OMX_UseEGLImage(ILC_GET_HANDLE(video_decode), &buf, 130, NULL, eglImage) != OMX_ErrorNone)
-  {
-      printf("OMX_UseEGLImage failed.\n");
-      return -2;
   }  
 
   OMX_CONFIG_LATENCYTARGETTYPE latencyTarget;
@@ -180,6 +167,13 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
 
     port_settings_changed = 0;
     first_packet = 1;
+
+    // setup texture
+    texture_renderer_setup(&eglImage);
+    if(eglImage == 0) {    
+      printf("eglImage is null.\n");
+      return -2;
+    }   
 
     ilclient_change_component_state(video_decode, OMX_StateExecuting);
   } else {
@@ -230,9 +224,7 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
   if((buf = ilclient_get_input_buffer(video_decode, 130, 1)) == NULL){
     fprintf(stderr, "Can't get video buffer\n");
     exit(EXIT_FAILURE);
-  }
-
-  texture_renderer_submit_decode_unit();
+  }  
 
   // feed data and wait until we get port settings changed
   dest = buf->pBuffer;
@@ -269,6 +261,15 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
     }
 
     ilclient_change_component_state(video_render, OMX_StateExecuting);
+
+    /* add texture */
+    if (OMX_UseEGLImage(ILC_GET_HANDLE(video_decode), &buf, 130, NULL, eglImage) != OMX_ErrorNone)
+    {
+        printf("OMX_UseEGLImage failed.\n");
+        return -2;
+    }  
+
+    texture_renderer_submit_decode_unit();
   }
 
   if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_decode), buf) != OMX_ErrorNone){

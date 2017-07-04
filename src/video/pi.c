@@ -123,7 +123,7 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
     return -2;
   }
 
-  texture_renderer_setup(eglImage);
+  eglImage = texture_renderer_setup();
   if(eglImage == 0) {    
     printf("eglImage is null.\n");
     return -2;

@@ -1,3 +1,7 @@
+#include "GLES/gl.h"
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+
 void texture_renderer_setup(void *elgTexture);
 void texture_renderer_cleanup();
 void texture_renderer_submit_decode_unit();

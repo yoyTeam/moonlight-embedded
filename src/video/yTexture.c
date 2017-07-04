@@ -7,10 +7,6 @@
 
 #include "bcm_host.h"
 
-#include "GLES/gl.h"
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-
 #include "yTexture.h"
 #include <pthread.h>
 
@@ -366,9 +362,6 @@ static void init_textures(CUBE_STATE_T *state)
       printf("eglCreateImageKHR failed.\n");
       return;
    }
-
-   // Start rendering
-   pthread_create(&thread1, NULL, video_decode_test, eglImage);
 
    // setup overall texture environment
    glTexCoordPointer(2, GL_FLOAT, 0, texCoords);

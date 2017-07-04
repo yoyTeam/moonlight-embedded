@@ -65,6 +65,13 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
   bcm_host_init();
   gs_sps_init(width, height);
 
+  // setup texture
+  texture_renderer_setup(&eglImage);
+  if(eglImage == 0) {    
+      printf("eglImage is null.\n");
+      return -2;
+  }   
+
   OMX_VIDEO_PARAM_PORTFORMATTYPE format;
   OMX_TIME_CONFIG_CLOCKSTATETYPE cstate;
   COMPONENT_T *clock = NULL;
@@ -168,23 +175,19 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
     port_settings_changed = 0;
     first_packet = 1;
 
-    // setup texture
-    texture_renderer_setup(&eglImage);
-    if(eglImage == 0) {    
-      printf("eglImage is null.\n");
-      return -2;
-    }   
-
     ilclient_change_component_state(video_decode, OMX_StateExecuting);
   } else {
     fprintf(stderr, "Can't setup video\n");
     return -2;
   }
 
+  printf("\n finish renderer setup \n");
+
   return 0;
 }
 
 static void decoder_renderer_cleanup() {
+  printf("\n render_cleanup \n");
   int status = 0;
 
   texture_renderer_cleanup();
@@ -221,6 +224,7 @@ static void decoder_renderer_cleanup() {
 }
 
 static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
+  printf("\n render_submit_decode_unit \n");
   if((buf = ilclient_get_input_buffer(video_decode, 130, 1)) == NULL){
     fprintf(stderr, "Can't get video buffer\n");
     exit(EXIT_FAILURE);

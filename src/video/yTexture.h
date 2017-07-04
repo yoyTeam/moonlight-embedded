@@ -2,7 +2,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 
-void texture_renderer_setup(void **egTexture);
+void texture_renderer_setup(void **eglTexture);
 void texture_renderer_cleanup();
 void texture_renderer_submit_decode_unit();
 

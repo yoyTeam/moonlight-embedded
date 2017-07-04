@@ -397,7 +397,7 @@ static void exit_func(void)
 } // exit_func()
 
 
-void texture_renderer_setup(void **egTexture) {
+void texture_renderer_setup(void **eglTexture) {
     printf("\n Texture egl init\n");
     // Clear application state
    memset( state, 0, sizeof( *state ) );

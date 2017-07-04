@@ -260,6 +260,8 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
       exit(EXIT_FAILURE);
     }
 
+    texture_renderer_submit_decode_unit();
+
     // Enable the output port and tell egl_render to use the texture as a buffer
     //ilclient_enable_port(egl_render, 221); THIS BLOCKS SO CAN'T BE USED
     if (OMX_SendCommand(ILC_GET_HANDLE(video_render), OMX_CommandPortEnable, 221, NULL) != OMX_ErrorNone)
@@ -273,9 +275,7 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
     {
         printf("OMX_UseEGLImage failed.\n");
         return -2;
-    }  
-
-    texture_renderer_submit_decode_unit();
+    }
 
     ilclient_change_component_state(video_render, OMX_StateExecuting);
 

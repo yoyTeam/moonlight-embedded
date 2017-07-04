@@ -397,7 +397,7 @@ static void exit_func(void)
 } // exit_func()
 
 
-void *void texture_renderer_setup() {
+void texture_renderer_setup(void **egTexture) {
     printf("\n Texture egl init\n");
     // Clear application state
    memset( state, 0, sizeof( *state ) );
@@ -411,7 +411,7 @@ void *void texture_renderer_setup() {
    // initialise the OGLES texture(s)
    init_textures(state);
 
-   return eglImage;
+   *eglTexture = eglImage;
 }
 
 void texture_renderer_cleanup() {

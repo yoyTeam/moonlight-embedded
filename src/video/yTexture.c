@@ -398,6 +398,7 @@ static void exit_func(void)
 
 
 void texture_renderer_setup(void *elgTexture) {
+    printf("\n Texture egl init\n");
     // Clear application state
    memset( state, 0, sizeof( *state ) );
       
@@ -412,10 +413,12 @@ void texture_renderer_setup(void *elgTexture) {
 }
 
 void texture_renderer_cleanup() {
+    printf("\n Texture egl cleanup\n");
     exit_func();
 }
 
 void texture_renderer_submit_decode_unit() {
+    printf("\n Texture egl decode unit\n");
     update_model(state);
     redraw_scene(state);
 }

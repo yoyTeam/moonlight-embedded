@@ -45,15 +45,20 @@ enum platform platform_check(char* name) {
     }
   }
   #endif
-  #ifdef HAVE_SDL
-  if (std || strcmp(name, "sdl") == 0)
-    return SDL;
-  #endif
-  #ifdef HAVE_PI
+  #ifdef HAVE_PI  
   if (std || strcmp(name, "pi") == 0) {
+    printf("\nfuck 1\n");
     void *handle = dlopen("libmoonlight-pi.so", RTLD_NOW | RTLD_GLOBAL);
-    if (handle != NULL && dlsym(RTLD_DEFAULT, "bcm_host_init") != NULL)
+    printf("\nfuck 2: %s", dlerror());
+    if(handle == NULL ) {
+      printf("\nfuck 2.1: %s", dlerror());
+    }
+    if (handle != NULL && dlsym(RTLD_DEFAULT, "bcm_host_init") != NULL) {
+      printf("\nfuck 3\n");
       return PI;
+    }
+
+      
   }
   #endif
   #ifdef HAVE_AML
@@ -80,7 +85,10 @@ enum platform platform_check(char* name) {
     return X11;
   }
   #endif
-  
+  #ifdef HAVE_SDL
+  if (std || strcmp(name, "sdl") == 0)
+    return SDL;
+  #endif
   if (strcmp(name, "fake") == 0)
     return FAKE;
 
@@ -161,8 +169,9 @@ AUDIO_RENDERER_CALLBACKS* platform_get_audio(enum platform system, char* audio_d
   #endif
   #ifdef HAVE_PI
   case PI:
-    if (audio_device == NULL || strcmp(audio_device, "local") == 0 || strcmp(audio_device, "hdmi") == 0)
-      return (PAUDIO_RENDERER_CALLBACKS) dlsym(RTLD_DEFAULT, "audio_callbacks_omx");
+    //if (audio_device == NULL || strcmp(audio_device, "local") == 0 || strcmp(audio_device, "hdmi") == 0)
+    //  return (PAUDIO_RENDERER_CALLBACKS) dlsym(RTLD_DEFAULT, "audio_callbacks_omx");
+    break;
   #endif
   default:
     #ifdef HAVE_PULSE

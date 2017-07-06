@@ -370,7 +370,6 @@ typedef struct
 
     sps_t* sps_table[32];
     pps_t* pps_table[256];
-    sei_t** seis;
 
 } h264_stream_t;
 

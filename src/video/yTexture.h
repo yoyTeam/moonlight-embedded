@@ -2,9 +2,10 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 
-void texture_renderer_setup(void **eglTexture);
+void texture_renderer_setup(void **eglTexture, int width, int height);
 void texture_renderer_cleanup();
-void texture_renderer_submit_decode_unit();
+void *texture_renderer_submit_decode_unit();
+
 
 static const GLbyte quadx[6*4*3] = {
    /* FRONT */

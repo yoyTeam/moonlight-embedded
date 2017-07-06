@@ -207,7 +207,7 @@ set(RPi_LIBS
 )
 
 set(GL_LIBS
-# openGLES
+   #openGLES
     GLESv2
     EGL
 )

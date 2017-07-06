@@ -27,6 +27,8 @@
 #include <EGL/egl.h>
 #include "esUtil.h"
 
+#define RPI_NO_X 1
+
 #ifdef RPI_NO_X
 #include  "bcm_host.h"
 #else

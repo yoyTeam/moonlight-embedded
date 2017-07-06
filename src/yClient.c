@@ -63,7 +63,7 @@ GLuint CreateSimpleTexture2D(ESContext *esContext)
                 esContext->eglDisplay,
                 esContext->eglContext,
                 EGL_GL_TEXTURE_2D_KHR,
-                textureId, // (EGLClientBuffer)esContext->texture,
+                (EGLClientBuffer)textureId, // (EGLClientBuffer)esContext->texture,
                 0);
     
    if (eglImage == EGL_NO_IMAGE_KHR)
@@ -73,7 +73,7 @@ GLuint CreateSimpleTexture2D(ESContext *esContext)
    }
 
    // Start rendering
-   pthread_create(&thread1, NULL, video_decode_test, eglImage);
+   pthread_create(&thread1, NULL, moonlight_streaming, eglImage);
 
    return textureId;
 }

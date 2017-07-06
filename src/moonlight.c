@@ -187,6 +187,7 @@ static void pair_check(PSERVER_DATA server) {
 //int main(int argc, char* argv[]) {
 // Modified function prototype to work with pthreads
 void *moonlight_streaming(void* arg)
+int argc, char *argv[];
   CONFIGURATION config;
   config_parse(argc, argv, &config);
 

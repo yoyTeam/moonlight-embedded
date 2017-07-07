@@ -48,11 +48,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <openssl/rand.h>
+
+#include "moonlight.h"
 
 static void applist(PSERVER_DATA server) {
   PAPP_LIST list = NULL;
@@ -191,9 +192,20 @@ void *moonlight_streaming(void* arg) {
 
   struct thread_args *args = arg;
 
+  int i = 0;
+  size_t n = 0;
   int argc = args->argc;
-  char* argv[] = args->argv;
-  void* eglImage = args->elgImage;
+  char** argv;
+  void* eglImage = args->eglImage;
+
+  argv = (char**)malloc((argc + 1) * sizeof(char*));
+  argv[argc] = NULL;
+  for(i = 0; i < argc, ++i) {
+      n = strlen(args->argv[i]) + 1;
+      argv[i] = (char*)malloc(n);
+      strcpy(argv[i], args->argv[i]);
+  }
+   
 
   config_parse(argc, argv, &config);
 

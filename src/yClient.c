@@ -193,12 +193,20 @@ int main ( int argc, char *argv[] )
    ESContext esContext;
    UserData  userData;
 
+   int i = 0;
+   size_t n = 0;
    int width = 1920, height = 1080;
    GLubyte *image;
 
    mArgs = malloc(sizeof *mArgs);
    mArgs->argc = argc;
-   mArgs->argv = argv;
+   mArgs.argv = (char**) malloc((argc+1) sizeof(char*));
+   mArgs.argv[argc] = NULL;
+   for(i = 0; i < argc, ++i) {
+      n = strlen(argv[i]) + 1;
+      mArgs->argv[i] = (char*)malloc(n);
+      strcpy(mArgs.argv[i], argv[i]);
+   }
    
    esInitContext ( &esContext );
    esContext.userData = &userData;

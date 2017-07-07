@@ -40,7 +40,7 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
         return -1;
     }
 
-    elgImage = teglImage;
+    eglImage = teglImage;
 
     //bcm_host_init();
 
@@ -186,8 +186,6 @@ static void decoder_renderer_cleanup() {
     ilclient_flush_tunnels(tunnel, 1);
 
     ilclient_disable_port_buffers(video_decode, 130, NULL, NULL, NULL);
-
-    fclose(in);
 
     ilclient_disable_tunnel(tunnel);
     ilclient_teardown_tunnels(tunnel);

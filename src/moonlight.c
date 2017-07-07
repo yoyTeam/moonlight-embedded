@@ -200,7 +200,7 @@ void *moonlight_streaming(void* arg) {
 
   argv = (char**)malloc((argc + 1) * sizeof(char*));
   argv[argc] = NULL;
-  for(i = 0; i < argc, ++i) {
+  for(i = 0; i < argc; ++i) {
       n = strlen(args->argv[i]) + 1;
       argv[i] = (char*)malloc(n);
       strcpy(argv[i], args->argv[i]);

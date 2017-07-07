@@ -205,9 +205,7 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
         fprintf(stderr, "Can't get video buffer\n");
         exit(EXIT_FAILURE);
     }
-
-    texture_renderer_submit_decode_unit();
-
+    
     // feed data and wait until we get port settings changed
     dest = eglBuffer->pBuffer;
 

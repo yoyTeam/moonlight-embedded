@@ -200,12 +200,12 @@ int main ( int argc, char *argv[] )
 
    mArgs = malloc(sizeof *mArgs);
    mArgs->argc = argc;
-   mArgs.argv = (char**) malloc((argc+1) sizeof(char*));
-   mArgs.argv[argc] = NULL;
-   for(i = 0; i < argc, ++i) {
+   mArgs->argv = (char**) malloc((argc+1) * sizeof(char*));
+   mArgs->argv[argc] = NULL;
+   for(i = 0; i < argc; ++i) {
       n = strlen(argv[i]) + 1;
       mArgs->argv[i] = (char*)malloc(n);
-      strcpy(mArgs.argv[i], argv[i]);
+      strcpy(mArgs->argv[i], argv[i]);
    }
    
    esInitContext ( &esContext );

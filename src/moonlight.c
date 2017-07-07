@@ -83,7 +83,7 @@ static int get_app_id(PSERVER_DATA server, const char *name) {
   return -1;
 }
 
-static void stream(PSERVER_DATA server, PCONFIGURATION config, enum platform system) {
+static void stream(PSERVER_DATA server, PCONFIGURATION config, enum platform system, void* eglImage) {
   int appId = get_app_id(server, config->app);
   if (appId<0) {
     fprintf(stderr, "Can't find app %s\n", config->app);
@@ -111,7 +111,7 @@ static void stream(PSERVER_DATA server, PCONFIGURATION config, enum platform sys
   }
 
   platform_start(system);
-  LiStartConnection(&server->serverInfo, &config->stream, &connection_callbacks, platform_get_video(system), platform_get_audio(system, config->audio_device), NULL, drFlags, config->audio_device, 0);
+  LiStartConnection(&server->serverInfo, &config->stream, &connection_callbacks, platform_get_video(system), platform_get_audio(system, config->audio_device), NULL, drFlags, config->audio_device, 0, eglImage);
 
   if (IS_EMBEDDED(system)) {
     evdev_start();
@@ -187,10 +187,17 @@ static void pair_check(PSERVER_DATA server) {
 //int main(int argc, char* argv[]) {
 // Modified function prototype to work with pthreads
 void *moonlight_streaming(void* arg) {
-  int argc;
-  char *argv[];
   CONFIGURATION config;
+
+  struct thread_args *args = arg;
+
+  int argc = args->argc;
+  char* argv[] = args->argv;
+  void* eglImage = args->elgImage;
+
   config_parse(argc, argv, &config);
+
+  free(args);
 
   if (config.action == NULL || strcmp("help", config.action) == 0)
     help();
@@ -299,7 +306,7 @@ void *moonlight_streaming(void* arg) {
     }
     #endif
 
-    stream(&server, &config, system);
+    stream(&server, &config, system, eglImage);
   } else if (strcmp("pair", config.action) == 0) {
     char pin[5];
     sprintf(pin, "%d%d%d%d", (int)random() % 10, (int)random() % 10, (int)random() % 10, (int)random() % 10);

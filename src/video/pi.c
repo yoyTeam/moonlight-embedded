@@ -11,8 +11,8 @@
 
 #define MAX_DECODE_UNIT_SIZE 262144
 
-static TUNNEL_T tunnel[4];
-static COMPONENT_T *list[5];
+static TUNNEL_T tunnel[3]; // last entry should be null
+static COMPONENT_T *list[2]; // last entry should be null
 static ILCLIENT_T *client;
 
 static COMPONENT_T *video_decode = NULL, *video_scheduler = NULL, *egl_render = NULL;
@@ -27,33 +27,28 @@ static void* eglImage = 0;
 
 void my_fill_buffer_done(void* data, COMPONENT_T* comp)
 {
-  if (OMX_FillThisBuffer(ilclient_get_handle(egl_render), eglBuffer) != OMX_ErrorNone)
-   {
-      printf("OMX_FillThisBuffer failed in callback\n");
-      exit(1);
-   }
+    if (OMX_FillThisBuffer(ilclient_get_handle(egl_render), eglBuffer) != OMX_ErrorNone)
+	{
+	    printf("OMX_FillThisBuffer failed in callback\n");
+	    exit(1);
+	}
 }
 
-static int decoder_renderer_setup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
+static int decoder_renderer_setup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags, void* teglImage) {
     if (videoFormat != VIDEO_FORMAT_H264) {
         fprintf(stderr, "Video format not supported\n");
         return -1;
     }
 
-    bcm_host_init();
+    elgImage = teglImage;
 
-    texture_renderer_setup(&eglImage, width, height);
-    if (eglImage == 0) {
-        printf("\n eglImage is null.\n");
-        return -2;
-    }
+    //bcm_host_init();
 
     gs_sps_init(width, height);
 
     OMX_VIDEO_PARAM_PORTFORMATTYPE format;
     OMX_TIME_CONFIG_CLOCKSTATETYPE cstate;
-    COMPONENT_T *clock = NULL;
-
+    
     memset(list, 0, sizeof(list));
     memset(tunnel, 0, sizeof(tunnel));
 
@@ -86,52 +81,14 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
 
     list[1] = egl_render;
 
-     // create clock
-    if(ilclient_create_component(client, &clock, "clock", ILCLIENT_DISABLE_ALL_PORTS) != 0) {
-        fprintf(stderr, "Can't create clock\n");
-        return -2;
-    }
-      
-   list[2] = clock;
-
-    memset(&cstate, 0, sizeof(cstate));
-    cstate.nSize = sizeof(cstate);
-    cstate.nVersion.nVersion = OMX_VERSION;
-    cstate.eState = OMX_TIME_ClockStateWaitingForStartTime;
-    cstate.nWaitMask = 1;
-    if(clock != NULL && OMX_SetParameter(ILC_GET_HANDLE(clock), OMX_IndexConfigTimeClockState, &cstate) != OMX_ErrorNone) {
-        fprintf(stderr, "Can't create parameter clock\n");
-        return -2;
-    }      
-
-    // create video_scheduler
-    if(ilclient_create_component(client, &video_scheduler, "video_scheduler", ILCLIENT_DISABLE_ALL_PORTS) != 0) {
-        fprintf(stderr, "Can't create video scheduler\n");
-        return -2;
-    }      
-    list[3] = video_scheduler;
-
-    set_tunnel(tunnel, video_decode, 131, video_scheduler, 10);
-    set_tunnel(tunnel+1, video_scheduler, 11, egl_render, 220);
-    set_tunnel(tunnel+2, clock, 80, video_scheduler, 12);
-
+    set_tunnel(tunnel, video_decode, 131, egl_render, 220);
     ilclient_change_component_state(video_decode, OMX_StateIdle);
-
-    // setup clock tunnel first
-    if(ilclient_setup_tunnel(tunnel+2, 0, 0) != 0) {
-        fprintf(stderr, "Can't create tunnel clock\n");
-        return -2;
-    } else {
-        ilclient_change_component_state(clock, OMX_StateExecuting);
-    }
-
-   ilclient_change_component_state(video_decode, OMX_StateIdle);
-
-   memset(&format, 0, sizeof(OMX_VIDEO_PARAM_PORTFORMATTYPE));
-   format.nSize = sizeof(OMX_VIDEO_PARAM_PORTFORMATTYPE);
-   format.nVersion.nVersion = OMX_VERSION;
-   format.nPortIndex = 130;
-   format.eCompressionFormat = OMX_VIDEO_CodingAVC;
+     
+    memset(&format, 0, sizeof(OMX_VIDEO_PARAM_PORTFORMATTYPE));
+    format.nSize = sizeof(OMX_VIDEO_PARAM_PORTFORMATTYPE);
+    format.nVersion.nVersion = OMX_VERSION;
+    format.nPortIndex = 130;
+    format.eCompressionFormat = OMX_VIDEO_CodingAVC;
 
 
 /*
@@ -220,15 +177,17 @@ static void decoder_renderer_cleanup() {
     eglBuffer->nFilledLen = 0;
     eglBuffer->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
 
-    if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(list[0]), eglBuffer) != OMX_ErrorNone){
+    /*if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(list[0]), eglBuffer) != OMX_ErrorNone){
         fprintf(stderr, "Can't empty video buffer\n");
         return;
-    }
+    }*/
 
-    // need to flush the renderer to allow video_decode to disable its input port
-    ilclient_flush_tunnels(tunnel, 0);
+     // need to flush the renderer to allow video_decode to disable its input port
+    ilclient_flush_tunnels(tunnel, 1);
 
-    ilclient_disable_port_buffers(list[0], 130, NULL, NULL, NULL);
+    ilclient_disable_port_buffers(video_decode, 130, NULL, NULL, NULL);
+
+    fclose(in);
 
     ilclient_disable_tunnel(tunnel);
     ilclient_teardown_tunnels(tunnel);
@@ -288,22 +247,11 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
             exit(EXIT_FAILURE);
         }
 
-        //texture_renderer_submit_decode_unit();
-
-        ilclient_change_component_state(video_scheduler, OMX_StateExecuting);
-
-        // now setup tunnel to egl_render
-        if(ilclient_setup_tunnel(tunnel+1, 0, 1000) != 0)
-        {
-            fprintf(stderr, "Can't setup tunnel egl render\n");
-            exit(EXIT_FAILURE);            
-        }
-
         // Set egl_render to idle
         ilclient_change_component_state(egl_render, OMX_StateIdle);
 
         // Enable the output port and tell egl_render to use the texture as a buffer
-        //ilclient_enable_port(egl_render, 221); THIS BLOCKS SO CAN'T BE USED
+        //ilclient_enable_port(egl_render, 221); THIS BLOCKS SO CANT BE USED
         if (OMX_SendCommand(ILC_GET_HANDLE(egl_render), OMX_CommandPortEnable, 221, NULL) != OMX_ErrorNone)
         {
             printf("OMX_CommandPortEnable failed.\n");
@@ -318,6 +266,7 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
 
         // Set egl_render to executing
         ilclient_change_component_state(egl_render, OMX_StateExecuting);
+
 
         // Request egl_render to write data to the texture buffer
         if(OMX_FillThisBuffer(ILC_GET_HANDLE(egl_render), eglBuffer) != OMX_ErrorNone)

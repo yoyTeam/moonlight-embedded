@@ -32,6 +32,12 @@ pkg_check_modules(PULSE libpulse-simple)
 pkg_check_modules(CEC libcec>=3.0.0)
 pkg_check_modules(EGL egl)
 pkg_check_modules(GLES glesv2)
+find_library(RPI_BCM_HOST bcm_host "${RPI_LIB_DIR}")
+find_library(RPI_VCOS vcos "${RPI_LIB_DIR}")
+find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
+find_library(RPI_EGL egl "${RPI_LIB_DIR}")
+find_library(RPI_OPENMAXIL openmaxil "${RPI_LIB_DIR}")
+find_library(RPI_GLESV2 GLESv2 "${RPI_LIB_DIR}")
 
 set(VDPAU_ACCEL_FOUND FALSE)
 set(VA_ACCEL_FOUND FALSE)
@@ -185,41 +191,8 @@ endif()
 
 configure_file("./src/configuration.h.in" "${PROJECT_BINARY_DIR}/configuration.h")
 
-include_directories(
-    /opt/vc/include
-    /opt/vc/include/interface/vcos/pthreads
-    /opt/vc/include/interface/vmcs_host/linux
-#   ${CMAKE_SOURCE_DIR}/libs/glm/
-    ${CMAKE_SOURCE_DIR}/libs/ilclient
-    ${CMAKE_SOURCE_DIR}/common
-)
-
-link_directories(
-    ${CMAKE_SOURCE_DIR}/libs/ilclient
-    /opt/vc/lib
-)
-
-
-set(RPi_LIBS
-# Raspberry Pi - Broadcom
-    libbcm_host.so
-    libvcos.so
-)
-
-set(GL_LIBS
-   #openGLES
-    GLESv2
-    EGL
-)
-
-set(ILC_LIBS
-# ilclient
-    ilclient
-    openmaxil
-)
-
 set_property(TARGET moonlight PROPERTY COMPILE_DEFINITIONS ${MOONLIGHT_DEFINITIONS})
-target_include_directories(moonlight PRIVATE ${GAMESTREAM_INCLUDE_DIR} ${MOONLIGHT_COMMON_INCLUDE_DIR} ${OPUS_INCLUDE_DIRS} ${EVDEV_INCLUDE_DIRS} ${UDEV_INCLUDE_DIRS})
+target_include_directories(moonlight PRIVATE ${GAMESTREAM_INCLUDE_DIR} ${MOONLIGHT_COMMON_INCLUDE_DIR} ${OPUS_INCLUDE_DIRS} ${EVDEV_INCLUDE_DIRS} ${UDEV_INCLUDE_DIRS} ${RPi_INC})
 target_link_libraries(moonlight ${EVDEV_LIBRARIES} ${OPUS_LIBRARY} ${UDEV_LIBRARIES} ${CMAKE_DL_LIBS}  ${RPi_LIBS} ${GL_LIBS} ${ILC_LIBS})
 
 add_subdirectory(docs)

@@ -26,6 +26,7 @@ typedef struct
 } UserData;
 
 static void* eglImage = 0;
+struct thread_args *mArgs = 0;
 static pthread_t thread1;
 
 #define IMAGE_SIZE_WIDTH 1920
@@ -72,8 +73,10 @@ GLuint CreateSimpleTexture2D(ESContext *esContext)
       exit(1);
    }
 
+   mArgs->eglImage = eglImage;
+
    // Start rendering
-   pthread_create(&thread1, NULL, moonlight_streaming, eglImage);
+   pthread_create(&thread1, NULL, moonlight_streaming, mArgs);
 
    return textureId;
 }
@@ -192,6 +195,10 @@ int main ( int argc, char *argv[] )
 
    int width = 1920, height = 1080;
    GLubyte *image;
+
+   mArgs = malloc(sizeof *mArgs);
+   mArgs->argc = argc;
+   mArgs->argv = argv;
    
    esInitContext ( &esContext );
    esContext.userData = &userData;

@@ -29,6 +29,7 @@
 
 #include "input/mapping.h"
 #include "input/evdev.h"
+#include "input/imu.h"
 #include "input/udev.h"
 #ifdef HAVE_LIBCEC
 #include "input/cec.h"

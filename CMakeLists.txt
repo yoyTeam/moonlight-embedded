@@ -183,6 +183,9 @@ if (PULSE_FOUND)
   target_link_libraries(moonlight ${PULSE_LIBRARIES})
 endif()
 
+SET_SOURCE_FILES_PROPERTIES( "./src/input/imu.c" PROPERTIES LANGUAGE CXX )
+
+
 configure_file("./src/configuration.h.in" "${PROJECT_BINARY_DIR}/configuration.h")
 
 set_property(TARGET moonlight PROPERTY COMPILE_DEFINITIONS ${MOONLIGHT_DEFINITIONS})

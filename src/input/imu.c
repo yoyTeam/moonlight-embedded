@@ -36,12 +36,13 @@
 #include <pthread.h>
 #include <endian.h>
 
-#include "RTIMULib.h"
+
+#include "rtimu.h"
 
 #define PINL 14
 #define PINR 4
 
-RTIMU *imu;
+rtimu_t *imu = rtimu_init();
 
 float prevYaw;
 float prevPitch;
@@ -65,7 +66,7 @@ static void evdev_remove(int devindex) {
 }
 
 static bool imu_handle_event(struct input_event *ev, struct input_device *dev) {
-  RTIMU_DATA imuData = imu->getIMUData();
+  RTIMU_DATA imuData = imu->rtimu_get_IMUData();
   yaw = imuData.fusionPose.z();
   pitch = imuData.fusionPose.y();
   movX = ( prevYaw - imuData.fusionPose.z() ) * 4000;

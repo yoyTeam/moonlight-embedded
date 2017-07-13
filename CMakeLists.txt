@@ -4,7 +4,7 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(${CMAKE_ROOT}/Modules/GNUInstallDirs.cmake)
 
 aux_source_directory(./src SRC_LIST)
-list(APPEND SRC_LIST ./src/input/evdev.c ./src/input/mapping.c ./src/input/udev.c)
+list(APPEND SRC_LIST ./src/input/evdev.c ./src/input/mapping.c ./src/input/udev.c ./src/input/rtimu.cpp ./src/input/imu.c)
 
 set(MOONLIGHT_DEFINITIONS)
 
@@ -182,9 +182,6 @@ if (PULSE_FOUND)
   target_include_directories(moonlight PRIVATE ${PULSE_INCLUDE_DIRS})
   target_link_libraries(moonlight ${PULSE_LIBRARIES})
 endif()
-
-SET_SOURCE_FILES_PROPERTIES( "./src/input/imu.c" PROPERTIES LANGUAGE CXX )
-
 
 configure_file("./src/configuration.h.in" "${PROJECT_BINARY_DIR}/configuration.h")
 

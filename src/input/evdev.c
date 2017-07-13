@@ -40,6 +40,13 @@
 #include <pthread.h>
 #include <endian.h>
 
+#include "RTIMULib.h"
+
+#define PINL 14
+#define PINR 4
+
+RTIMU *imu;
+
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 #define int16_to_le(val) val
 #else

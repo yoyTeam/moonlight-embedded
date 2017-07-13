@@ -47,12 +47,7 @@ enum platform platform_check(char* name) {
   #endif
   #ifdef HAVE_PI  
   if (std || strcmp(name, "pi") == 0) {
-    printf("\nfuck 1\n");
     void *handle = dlopen("libmoonlight-pi.so", RTLD_NOW | RTLD_GLOBAL);
-    printf("\nfuck 2: %s", dlerror());
-    if(handle == NULL ) {
-      printf("\nfuck 2.1: %s", dlerror());
-    }
     if (handle != NULL && dlsym(RTLD_DEFAULT, "bcm_host_init") != NULL) {
       printf("\nfuck 3\n");
       return PI;

@@ -115,9 +115,11 @@ static void stream(PSERVER_DATA server, PCONFIGURATION config, enum platform sys
   LiStartConnection(&server->serverInfo, &config->stream, &connection_callbacks, platform_get_video(system), platform_get_audio(system, config->audio_device), NULL, drFlags, config->audio_device, 0, eglImage);
 
   if (IS_EMBEDDED(system)) {
-    evdev_start();
+    //evdev_start();
+    imu_start();
     loop_main();
-    evdev_stop();
+    imu_stop();
+    //evdev_stop();
   }
   #ifdef HAVE_SDL
   else if (system == SDL)
@@ -185,14 +187,14 @@ static void pair_check(PSERVER_DATA server) {
 
 
 
-int main(int argc, char* argv[]) {
+//int main(int argc, char* argv[]) {
 // Modified function prototype to work with pthreads
-//void *moonlight_streaming(void* arg) {
+void *moonlight_streaming(void* arg) {
   CONFIGURATION config;
 
-void* eglImage = NULL;
+//void* eglImage = NULL;
 
-/*  struct thread_args *args = arg;
+  struct thread_args *args = arg;
 
   int i = 0;
   size_t n = 0;
@@ -208,10 +210,10 @@ void* eglImage = NULL;
       strcpy(argv[i], args->argv[i]);
   }
    
-*/
+
   config_parse(argc, argv, &config);
 
-  //free(args);
+  free(args);
 
   if (config.action == NULL || strcmp("help", config.action) == 0)
     help();
@@ -295,6 +297,7 @@ void* eglImage = NULL;
         mappings = map;
       }
 
+      /*
       for (int i=0;i<config.inputsCount;i++) {
         if (config.debug_level > 0)
           printf("Add input %s...\n", config.inputs[i]);
@@ -306,7 +309,12 @@ void* eglImage = NULL;
       evdev_init();
       #ifdef HAVE_LIBCEC
       cec_init();
-      #endif /* HAVE_LIBCEC */
+      #endif // HAVE_LIBCEC
+      */
+
+      imu_create(NULL, NULL, config.debug_level > 0);
+      imu_init();
+
     }
     #ifdef HAVE_SDL
     else if (system == SDL) {

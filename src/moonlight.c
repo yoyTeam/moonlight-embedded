@@ -185,12 +185,14 @@ static void pair_check(PSERVER_DATA server) {
 
 
 
-//int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 // Modified function prototype to work with pthreads
-void *moonlight_streaming(void* arg) {
+//void *moonlight_streaming(void* arg) {
   CONFIGURATION config;
 
-  struct thread_args *args = arg;
+void* eglImage = NULL;
+
+/*  struct thread_args *args = arg;
 
   int i = 0;
   size_t n = 0;
@@ -206,10 +208,10 @@ void *moonlight_streaming(void* arg) {
       strcpy(argv[i], args->argv[i]);
   }
    
-
+*/
   config_parse(argc, argv, &config);
 
-  free(args);
+  //free(args);
 
   if (config.action == NULL || strcmp("help", config.action) == 0)
     help();

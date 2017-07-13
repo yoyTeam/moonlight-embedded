@@ -6,40 +6,40 @@
 
 #include "moonlight.h"
 
-typedef struct
-{
-   // Handle to a program object
-   GLuint programObject;
+ESContext esContext;
+// Handle to a program object
+GLuint programObject;
 
-   // Attribute locations
-   GLint  positionLoc;
-   GLint  texCoordLoc;
+// Attribute locations
+GLint  positionLoc;
+GLint  texCoordLoc;
 
-   // Sampler location
-   GLint samplerLoc;
+// Sampler location
+GLint samplerLoc;
 
-   // Texture handle
-   GLuint textureId;
+// Texture handle
+GLuint DtextureId;
 
-   GLubyte *image;
-    int width, height;
-} UserData;
+GLubyte *image;
+int Dwidth, Dheight;
+
+#define IMAGE_SIZE_WIDTH 1280
+#define IMAGE_SIZE_HEIGHT 720
+static int glInited = 0;
 
 static void* eglImage = 0;
 struct thread_args *mArgs = 0;
 static pthread_t thread1;
 
-#define IMAGE_SIZE_WIDTH 1920
-#define IMAGE_SIZE_HEIGHT 1080
-
-GLuint CreateSimpleTexture2D(ESContext *esContext)
+GLuint CreateTexture(ESContext *esContext)
 {
+
    // Texture object handle
-   GLuint textureId;
-   UserData *userData = esContext->userData;
-   
-   //userData->width = esContext->width;
-   //userData->height = esContext->height;
+    GLuint textureId;
+   //UserData *userData = esContext->userData;
+
+   Dwidth = esContext->width;
+   Dheight = esContext->height;
 
    // Generate a texture object
    glGenTextures ( 1, &textureId );
@@ -48,8 +48,8 @@ GLuint CreateSimpleTexture2D(ESContext *esContext)
    glBindTexture ( GL_TEXTURE_2D, textureId );
 
    // Load the texture
-   glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA, 
-		  IMAGE_SIZE_WIDTH, IMAGE_SIZE_HEIGHT, 
+   glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA,
+		  IMAGE_SIZE_WIDTH, IMAGE_SIZE_HEIGHT,
 		  0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
 
    // Set the filtering mode
@@ -64,16 +64,16 @@ GLuint CreateSimpleTexture2D(ESContext *esContext)
                 esContext->eglDisplay,
                 esContext->eglContext,
                 EGL_GL_TEXTURE_2D_KHR,
-                (EGLClientBuffer)textureId, // (EGLClientBuffer)esContext->texture,
+                textureId, // (EGLClientBuffer)esContext->texture,
                 0);
-    
+
    if (eglImage == EGL_NO_IMAGE_KHR)
    {
       printf("eglCreateImageKHR failed.\n");
       exit(1);
    }
 
-   mArgs->eglImage = eglImage;
+  mArgs->eglImage = eglImage;
 
    // Start rendering
    pthread_create(&thread1, NULL, moonlight_streaming, mArgs);
@@ -85,10 +85,11 @@ GLuint CreateSimpleTexture2D(ESContext *esContext)
 ///
 // Initialize the shader and program object
 //
-int Init ( ESContext *esContext )
+int InitShaders ( ESContext *esContext )
 {
-    UserData *userData = esContext->userData;
-    GLbyte vShaderStr[] =  
+
+    //UserData *userData = esContext->userData;
+    GLbyte vShaderStr[] =
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
       "varying vec2 v_texCoord;     \n"
@@ -97,30 +98,30 @@ int Init ( ESContext *esContext )
       "   gl_Position = a_position; \n"
       "   v_texCoord = a_texCoord;  \n"
       "}                            \n";
-   
-    GLbyte fShaderStr[] =  
+
+    GLbyte fShaderStr[] =
       "precision mediump float;                            \n"
       "varying vec2 v_texCoord;                            \n"
       "uniform sampler2D s_texture;                        \n"
       "void main()                                         \n"
       "{                                                   \n"
-      "  gl_FragColor = texture2D( s_texture, v_texCoord );\n"
+      "  gl_FragColor = texture2D( s_texture, v_texCoord ); \n"
       "}                                                   \n";
 
    // Load the shaders and get a linked program object
-   userData->programObject = esLoadProgram ( vShaderStr, fShaderStr );
+   programObject = esLoadProgram ( vShaderStr, fShaderStr );
 
    // Get the attribute locations
-   userData->positionLoc = glGetAttribLocation ( userData->programObject, "a_position" );
-   userData->texCoordLoc = glGetAttribLocation ( userData->programObject, "a_texCoord" );
-   
+   positionLoc = glGetAttribLocation ( programObject, "a_position" );
+   texCoordLoc = glGetAttribLocation ( programObject, "a_texCoord" );
+
    // Get the sampler location
-   userData->samplerLoc = glGetUniformLocation ( userData->programObject, "s_texture" );
+   samplerLoc = glGetUniformLocation ( programObject, "s_texture" );
 
    // Load the texture
-   userData->textureId = CreateSimpleTexture2D (esContext);
+   DtextureId = CreateTexture (esContext);
 
-   glClearColor ( 0.5f, 0.5f, 0.5f, 1.0f );   
+   glClearColor ( 0.5f, 0.5f, 0.5f, 1.0f );
 
    return GL_TRUE;
 }
@@ -128,11 +129,12 @@ int Init ( ESContext *esContext )
 ///
 // Draw a triangle using the shader pair created in Init()
 //
-void Draw ( ESContext *esContext )
+void DrawGL ( ESContext *esContext )
 {
-   UserData *userData = esContext->userData;
+
+   //UserData *userData = esContext->userData;
    GLfloat vVertices[] = { -1.0f,  1.0f, 0.0f,  // Position 0
-                            0.0f,  0.0f,        // TexCoord 0 
+                            0.0f,  0.0f,        // TexCoord 0
                            -1.0f, -1.0f, 0.0f,  // Position 1
                             0.0f,  1.0f,        // TexCoord 1
                             1.0f, -1.0f, 0.0f,  // Position 2
@@ -141,32 +143,32 @@ void Draw ( ESContext *esContext )
                             1.0f,  0.0f         // TexCoord 3
                          };
    GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
-      
+
    // Set the viewport
-   glViewport ( 0, 0, 1920, 1080); //esContext->width, esContext->height );
-   
+   glViewport ( 0, 0, 1280, 720); //esContext->width, esContext->height );
+
    // Clear the color buffer
    glClear ( GL_COLOR_BUFFER_BIT );
 
    // Use the program object
-   glUseProgram ( userData->programObject );
+   glUseProgram ( programObject );
 
    // Load the vertex position
-   glVertexAttribPointer ( userData->positionLoc, 3, GL_FLOAT, 
+   glVertexAttribPointer ( positionLoc, 3, GL_FLOAT,
                            GL_FALSE, 5 * sizeof(GLfloat), vVertices );
    // Load the texture coordinate
-   glVertexAttribPointer ( userData->texCoordLoc, 2, GL_FLOAT,
+   glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
                            GL_FALSE, 5 * sizeof(GLfloat), &vVertices[3] );
 
-   glEnableVertexAttribArray ( userData->positionLoc );
-   glEnableVertexAttribArray ( userData->texCoordLoc );
+   glEnableVertexAttribArray ( positionLoc );
+   glEnableVertexAttribArray ( texCoordLoc );
 
    // Bind the texture
    glActiveTexture ( GL_TEXTURE0 );
-   glBindTexture ( GL_TEXTURE_2D, userData->textureId );
+   glBindTexture ( GL_TEXTURE_2D, DtextureId );
 
    // Set the sampler texture unit to 0
-   glUniform1i ( userData->samplerLoc, 0 );
+   glUniform1i ( samplerLoc, 0 );
 
    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
 
@@ -177,22 +179,15 @@ void Draw ( ESContext *esContext )
 //
 void ShutDown ( ESContext *esContext )
 {
-   UserData *userData = esContext->userData;
-
    // Delete texture object
-   glDeleteTextures ( 1, &userData->textureId );
+   glDeleteTextures ( 1, &DtextureId );
 
    // Delete program object
-   glDeleteProgram ( userData->programObject );
-	
-   free(esContext->userData);
+   glDeleteProgram ( programObject );
 }
 
 int main ( int argc, char *argv[] )
 {
-   ESContext esContext;
-   UserData  userData;
-
    int i = 0;
    size_t n = 0;
    int width = 1920, height = 1080;
@@ -209,16 +204,11 @@ int main ( int argc, char *argv[] )
    }
    
    esInitContext ( &esContext );
-   esContext.userData = &userData;
-
-   esCreateWindow ( &esContext, "YOY Army", width, height, ES_WINDOW_RGB );
-
-   if ( !Init ( &esContext ) )
-      return 0;
-
-   esRegisterDrawFunc ( &esContext, Draw );
-
+    esCreateWindow ( &esContext, "Simple Texture 2D", 1280, 720, ES_WINDOW_RGB );
+    InitShaders ( &esContext );
+    esRegisterDrawFunc ( &esContext, DrawGL );
+   
    esMainLoop ( &esContext );
-
+   
    ShutDown ( &esContext );
 }

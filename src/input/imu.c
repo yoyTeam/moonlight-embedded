@@ -66,14 +66,14 @@ static void evdev_remove(int devindex) {
 }
 
 static bool imu_handle_event(struct input_event *ev, struct input_device *dev) {
-  RTIMU_DATA imuData = imu->rtimu_get_IMUData();
-  yaw = imuData.fusionPose.z();
-  pitch = imuData.fusionPose.y();
-  movX = ( prevYaw - imuData.fusionPose.z() ) * 4000;
-  movY = ( prevPitch - imuData.fusionPose.y() ) * 4000;
+  //RTIMU_DATA imuData = imu->rtimu_get_IMUData();
+  yaw = rtimu_get_fusionPose_z(imu);
+  pitch = rtimu_get_fusionPose_y(imu);
+  movX = ( prevYaw - rtimu_get_fusionPose_z(imu) ) * 4000;
+  movY = ( prevPitch - rtimu_get_fusionPose_y(imu) ) * 4000;
 
-  prevYaw = imuData.fusionPose.z();
-  prevPitch = imuData.fusionPose.y();
+  prevYaw = rtimu_get_fusionPose_z();
+  prevPitch = rtimu_get_fusionPose_y();
 
   int sensX = 1.0;
   int sensY = 1.0;

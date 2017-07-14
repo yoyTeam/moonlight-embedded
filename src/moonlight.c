@@ -143,9 +143,15 @@ static void stream(PSERVER_DATA server, PCONFIGURATION config, enum platform sys
   if (IS_EMBEDDED(system)) {
     evdev_start();
     imu_start();
+    esMainLoop ( &esContext );
     loop_main();
+    
+   
+      
+
     imu_stop();
     evdev_stop();
+    ShutDown ( &esContext );
   }
   #ifdef HAVE_SDL
   else if (system == SDL)
@@ -218,8 +224,7 @@ int main(int argc, char* argv[]) {
   CONFIGURATION config;
   config_parse(argc, argv, &config);
 
-  free(args);
-
+  
   if (config.action == NULL || strcmp("help", config.action) == 0)
     help();
   
@@ -286,9 +291,9 @@ int main(int argc, char* argv[]) {
     config.stream.supportsHevc = config.codec != CODEC_H264 && (config.codec == CODEC_HEVC || platform_supports_hevc(system));
 
     if (IS_EMBEDDED(system)) {
-      esInitContext ( &esContext );
+      esInitContext ( &esContext);
       esCreateWindow ( &esContext, "Simple Texture 2D", 1280, 720, ES_WINDOW_RGB );
-      InitShaders ( &esContext );
+      InitShaders ( &esContext, &eglImage  );
       esRegisterDrawFunc ( &esContext, DrawGL );
 
 
@@ -324,11 +329,6 @@ int main(int argc, char* argv[]) {
       
       imu_create(NULL, NULL, config.debug_level > 0);
       imu_init();
-
-      esMainLoop ( &esContext );
-   
-      ShutDown ( &esContext );
-
     }
     #ifdef HAVE_SDL
     else if (system == SDL) {

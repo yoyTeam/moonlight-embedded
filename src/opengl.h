@@ -9,7 +9,7 @@ extern "C" {
 #include "EGL/eglext.h"
 
 GLuint CreateTexture(ESContext *esContext);
-int InitShaders ( ESContext *esContext );
+GLuint InitShaders ( ESContext *esContext, void** teglImage );
 void DrawGL ( ESContext *esContext );
 void ShutDown ( ESContext *esContext );
 

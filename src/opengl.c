@@ -69,11 +69,9 @@ GLuint CreateTexture(ESContext *esContext)
       printf("eglCreateImageKHR failed.\n");
       exit(1);
    }
-
-  mArgs->eglImage = eglImage;
-
+  
    // Start rendering
-   pthread_create(&thread1, NULL, moonlight_streaming, mArgs);
+//   pthread_create(&thread1, NULL, moonlight_streaming, mArgs);
 
    return textureId;
 }
@@ -82,7 +80,7 @@ GLuint CreateTexture(ESContext *esContext)
 ///
 // Initialize the shader and program object
 //
-int InitShaders ( ESContext *esContext )
+GLuint InitShaders ( ESContext *esContext, void** teglImage )
 {
 
     //UserData *userData = esContext->userData;
@@ -119,6 +117,8 @@ int InitShaders ( ESContext *esContext )
    DtextureId = CreateTexture (esContext);
 
    glClearColor ( 0.5f, 0.5f, 0.5f, 1.0f );
+
+   *teglImage = eglImage;
 
    return GL_TRUE;
 }

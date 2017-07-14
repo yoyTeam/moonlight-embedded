@@ -15,7 +15,7 @@ EXTERNC static rtimu_t rtimu_createIMU(rtimu_settings_t settings) {
     return RTIMU::createIMU(msettings);
 }
 
-EXTERNC void rtimu_imu_init(rtimu_t rtimu) {
+EXTERNC void rtimu_init(rtimu_t rtimu) {
     RTIMU* imu = static_cast<RTIMU*>(rtimu);
     return imu->IMUInit();
 }
@@ -65,6 +65,11 @@ EXTERNC void rtimu_set_accel_enable(bool enable) {
 EXTERNC void rtimu_set_compass_enable(bool enable) {
     RTIMU* imu = static_cast<RTIMU*>(rtimu);
     imu->setCompassEnable(enable);
+}
+
+EXTERNC bool rtimu_read(rtimu_t rtimu) {
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    return imu->IMURead();
 }
 
 /* 

@@ -19,7 +19,10 @@
 
 #include "imu.h"
 
+#include "keyboard.h"
+
 #include "../loop.h"
+#include "libevdev/libevdev.h"
 
 #include <Limelight.h>
 
@@ -43,7 +46,7 @@
 #define PINL 14
 #define PINR 4
 
-rtimu_t *imu;
+static rtimu_t *imu;
 
 float prevYaw;
 float prevPitch;
@@ -59,6 +62,32 @@ int movY;
 
 int currentX = 1280 / 2;
 int currentY = 720 / 2;
+
+
+struct input_abs_parms {
+  int min, max;
+  int flat;
+  int avg;
+  int range, diff;
+};
+
+struct input_device {
+  struct libevdev *dev;
+  struct mapping* map;
+  int key_map[KEY_MAX];
+  int abs_map[ABS_MAX];
+  int hats_state[3][2];
+  int fd;
+  char modifiers;
+  __s32 mouseDeltaX, mouseDeltaY, mouseScroll;
+  short controllerId;
+  int buttonFlags;
+  char leftTrigger, rightTrigger;
+  short leftStickX, leftStickY;
+  short rightStickX, rightStickY;
+  bool gamepadModified;
+  struct input_abs_parms xParms, yParms, rxParms, ryParms, zParms, rzParms;
+};
 
 static bool (*handler) (struct input_event*, struct input_device*);
 
@@ -111,7 +140,7 @@ static void imu_drain(void) {
 }
 
 static int imu_handle(int fd) {
-  if(imu->IMURead()) {
+  if(rtimu_read(imu)) {
     if (!handler(NULL, NULL)) {
       return LOOP_RETURN;
     }
@@ -157,7 +186,7 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
 
   //  set up IMU
 
-  rtimu_imu_init(imu);
+  rtimu_init(imu);
 
   //  this is a convenient place to change fusion parameters
 
@@ -169,13 +198,7 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
   //  set up for rate timer
 
   //rateTimer = displayTimer = RTMath::currentUSecsSinceEpoch();
- 
-  if (grabbingDevices) {
-    if (ioctl(fd, EVIOCGRAB, 1) < 0) {
-      fprintf(stderr, "EVIOCGRAB failed with error %d\n", errno);
-    }
-  }
-
+   
   int fd = 66;
   loop_add_fd(fd, &imu_handle, POLLIN);
 }
@@ -188,7 +211,7 @@ void imu_start() {
   // this point.
   
   // Any new input devices detected after this point will be grabbed immediately
-  grabbingDevices = true;
+  //grabbingDevices = true;
 
   // Handle input events until the quit combo is pressed
 }
@@ -198,5 +221,5 @@ void imu_stop() {
 }
 
 void imu_init() {
-  handler = evdev_handle_event;
+  handler = imu_handle_event;
 }

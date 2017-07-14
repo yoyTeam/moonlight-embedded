@@ -4,7 +4,7 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(${CMAKE_ROOT}/Modules/GNUInstallDirs.cmake)
 
 aux_source_directory(./src SRC_LIST)
-list(APPEND SRC_LIST ./src/input/evdev.c ./src/input/mapping.c ./src/input/udev.c ./src/input/rtimu.cpp ./src/input/imu.c)
+list(APPEND SRC_LIST ./src/input/evdev.c ./src/input/mapping.c ./src/input/udev.c ./src/input/rtimu.c ./src/input/imu.c)
 
 set(MOONLIGHT_DEFINITIONS)
 
@@ -54,6 +54,13 @@ endif()
 
 SET(MOONLIGHT_COMMON_INCLUDE_DIR ./third_party/moonlight-common-c/src)
 SET(GAMESTREAM_INCLUDE_DIR ./libgamestream)
+
+find_library(YRTIMU_LIBRARY
+  NAMES libyrtimu.so
+  DOC "Path to yRtimu Library"
+  PATHS /usr/local/lib)
+mark_as_advanced(YRTIMU_LIBRARY)
+SET(YRTIMU_INCLUDE_DIR ./third_party/yRtimu/include)
 
 if(NOT AMLOGIC_FOUND AND NOT BROADCOM_FOUND AND NOT FREESCALE_FOUND AND NOT SOFTWARE_FOUND)
   message(FATAL_ERROR "No video output available")
@@ -186,8 +193,8 @@ endif()
 configure_file("./src/configuration.h.in" "${PROJECT_BINARY_DIR}/configuration.h")
 
 set_property(TARGET moonlight PROPERTY COMPILE_DEFINITIONS ${MOONLIGHT_DEFINITIONS})
-target_include_directories(moonlight PRIVATE ${GAMESTREAM_INCLUDE_DIR} ${MOONLIGHT_COMMON_INCLUDE_DIR} ${OPUS_INCLUDE_DIRS} ${EVDEV_INCLUDE_DIRS} ${UDEV_INCLUDE_DIRS} ${BROADCOM_INCLUDE_DIRS})
-target_link_libraries(moonlight ${EVDEV_LIBRARIES} ${OPUS_LIBRARY} ${UDEV_LIBRARIES} ${CMAKE_DL_LIBS}  ${BROADCOM_LIBRARIES} pthread rt m)
+target_include_directories(moonlight PRIVATE ${GAMESTREAM_INCLUDE_DIR} ${MOONLIGHT_COMMON_INCLUDE_DIR} ${OPUS_INCLUDE_DIRS} ${EVDEV_INCLUDE_DIRS} ${UDEV_INCLUDE_DIRS} ${BROADCOM_INCLUDE_DIRS} ${YRTIMU_INCLUDE_DIR})
+target_link_libraries(moonlight ${EVDEV_LIBRARIES} ${OPUS_LIBRARY} ${UDEV_LIBRARIES} ${CMAKE_DL_LIBS}  ${BROADCOM_LIBRARIES} pthread rt m ${YRTIMU_LIBRARY})
 
 add_subdirectory(docs)
 

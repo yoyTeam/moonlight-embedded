@@ -54,7 +54,32 @@
 #include <arpa/inet.h>
 #include <openssl/rand.h>
 
+#include "opengl.h"
 #include "moonlight.h"
+
+
+ESContext esContext;
+// Handle to a program object
+GLuint programObject;
+
+// Attribute locations
+GLint  positionLoc;
+GLint  texCoordLoc;
+
+// Sampler location
+GLint samplerLoc;
+
+// Texture handle
+GLuint DtextureId;
+
+GLubyte *image;
+int Dwidth, Dheight;
+
+#define IMAGE_SIZE_WIDTH 1280
+#define IMAGE_SIZE_HEIGHT 720
+static int glInited = 0;
+
+static void* eglImage = 0;
 
 static void applist(PSERVER_DATA server) {
   PAPP_LIST list = NULL;
@@ -188,30 +213,9 @@ static void pair_check(PSERVER_DATA server) {
 
 
 
-//int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 // Modified function prototype to work with pthreads
-void *moonlight_streaming(void* arg) {
   CONFIGURATION config;
-
-//void* eglImage = NULL;
-
-  struct thread_args *args = (struct thread_args*)arg;
-
-  int i = 0;
-  size_t n = 0;
-  int argc = args->argc;
-  char** argv;
-  void* eglImage = args->eglImage;
-
-  argv = (char**)malloc((argc + 1) * sizeof(char*));
-  argv[argc] = NULL;
-  for(i = 0; i < argc; ++i) {
-      n = strlen(args->argv[i]) + 1;
-      argv[i] = (char*)malloc(n);
-      strcpy(argv[i], args->argv[i]);
-  }
-   
-
   config_parse(argc, argv, &config);
 
   free(args);
@@ -282,6 +286,12 @@ void *moonlight_streaming(void* arg) {
     config.stream.supportsHevc = config.codec != CODEC_H264 && (config.codec == CODEC_HEVC || platform_supports_hevc(system));
 
     if (IS_EMBEDDED(system)) {
+      esInitContext ( &esContext );
+      esCreateWindow ( &esContext, "Simple Texture 2D", 1280, 720, ES_WINDOW_RGB );
+      InitShaders ( &esContext );
+      esRegisterDrawFunc ( &esContext, DrawGL );
+
+
       char* mapping_env = getenv("SDL_GAMECONTROLLERCONFIG");
       if (config.mapping == NULL && mapping_env == NULL) {
         fprintf(stderr, "Please specify mapping file as default mapping could not be found.\n");
@@ -314,6 +324,10 @@ void *moonlight_streaming(void* arg) {
       
       imu_create(NULL, NULL, config.debug_level > 0);
       imu_init();
+
+      esMainLoop ( &esContext );
+   
+      ShutDown ( &esContext );
 
     }
     #ifdef HAVE_SDL

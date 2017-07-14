@@ -42,11 +42,11 @@
 //static rtimu_t *imu;
 RTIMU *imu;
 
-float prevYaw;
-float prevPitch;
+float prevYaw = 0.0;
+float prevPitch= 0.0;
 
-float yaw;
-float pitch;
+float yaw = 0.0;
+float pitch = 0.0;
 
 int buttonL = 0;
 int buttonR = 0;
@@ -54,8 +54,8 @@ int buttonR = 0;
 int movX;
 int movY;
 
-int currentX = 1280 / 2;
-int currentY = 720 / 2;
+int currentX = 0;
+int currentY = 0;
 
 static bool (*handler) ();
 
@@ -63,30 +63,23 @@ static void evdev_remove(int devindex) {
   fprintf(stderr, "Removed imu device\n");
 }
 
-static bool imu_handle_event() {
-  /*yaw = rtimu_get_fusionPose_z(imu);
-  pitch = rtimu_get_fusionPose_y(imu);
-  movX = ( prevYaw - rtimu_get_fusionPose_z(imu) ) * 4000;
-  movY = ( prevPitch - rtimu_get_fusionPose_y(imu) ) * 4000;
+static bool imu_handle_event() {  
+  RTIMU_DATA imuData = imu->getIMUData();
+  yaw = imuData.fusionPose.z();
+  pitch = imuData.fusionPose.y();
+  movX = ( prevYaw - imuData.fusionPose.z() ) * 4000;
+  movY = ( prevPitch - imuData.fusionPose.y() ) * 4000;
 
-  prevYaw = rtimu_get_fusionPose_z(imu);
-  prevPitch = rtimu_get_fusionPose_y(imu);
-  */
+  prevYaw = imuData.fusionPose.z();
+  prevPitch = imuData.fusionPose.y();
 
-RTIMU_DATA imuData = imu->getIMUData();
-            yaw = imuData.fusionPose.z();
-            pitch = imuData.fusionPose.y();
-            movX = ( prevYaw - imuData.fusionPose.z() ) * 4000;
-            movY = ( prevPitch - imuData.fusionPose.y() ) * 4000;
+  int sensX = 1;
+  int sensY = 1;
 
-            prevYaw = imuData.fusionPose.z();
-            prevPitch = imuData.fusionPose.y();
+  currentX = (movX*sensX);
+  currentY = (movY*sensY);
 
-  int sensX = 1.0;
-  int sensY = 1.0;
-
-  currentX = currentX-(movX*sensX);
-  currentY = currentY-(movY*sensY);
+  printf("\n (x, y): (%f, %f)", yaw, pitch);
 
   LiSendMouseMoveEvent(currentX, currentY);
 
@@ -118,10 +111,11 @@ static void imu_drain(void) {
 
 static int imu_handle() {
   //if(rtimu_read(imu)) {
-  if(imu->IMURead()) {
+  while(imu->IMURead()) {
       if (!handler()) {
         return IMU_RETURN;
       }
+      usleep(1 * 1000);
             
   }
 
@@ -150,12 +144,12 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
   //  Or, you can create the .ini in some other directory by using:
   //      RTIMUSettings *settings = new RTIMUSettings("<directory path>", "RTIMULib");
   //  where <directory path> is the path to where the .ini file is to be loaded/saved
+ 
+  RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
 
-  /*rtimu_settings_t settings = rtimu_settings_new("RTIMULib");
+  imu = RTIMU::createIMU(settings);
 
-  imu = rtimu_createIMU(settings);
-
-  if ((imu == NULL) || rtimu_type_is_null(imu)) {
+  if ((imu == NULL) || (imu->IMUType() == RTIMU_TYPE_NULL)) {
       printf("No IMU found\n");
       return;
   }
@@ -164,37 +158,14 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
 
   //  set up IMU
 
-  rtimu_init(imu);
+  imu->IMUInit();
 
   //  this is a convenient place to change fusion parameters
 
-  rtimu_set_slerp_power(0.02);
-  rtimu_set_gyro_enable(true);
-  rtimu_set_accel_enable(true);
-  rtimu_set_compass_enable(false);
-  */
-
-  RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
-
-      imu = RTIMU::createIMU(settings);
-
-      if ((imu == NULL) || (imu->IMUType() == RTIMU_TYPE_NULL)) {
-          printf("No IMU found\n");
-          return;
-      }
-
-      //  This is an opportunity to manually override any settings before the call IMUInit
-
-      //  set up IMU
-
-      imu->IMUInit();
-
-      //  this is a convenient place to change fusion parameters
-
-      imu->setSlerpPower(0.02);
-      imu->setGyroEnable(true);
-      imu->setAccelEnable(true);
-      imu->setCompassEnable(false);
+  imu->setSlerpPower(0.02);
+  imu->setGyroEnable(true);
+  imu->setAccelEnable(true);
+  imu->setCompassEnable(false);
 
 
   //  set up for rate timer

@@ -17,6 +17,13 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef SDL_H
+#define SDL_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <SDL.h>
 
@@ -99,3 +106,9 @@ static const short keyCodes5[] = {
 
 void sdlinput_init(char* mappings);
 int sdlinput_handle_event(SDL_Event* event);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

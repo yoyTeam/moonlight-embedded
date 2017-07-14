@@ -5,7 +5,7 @@
 #endif
 
 #include <inttypes.h>
-#include "mapping.h"
+#include "../mapping.h"
 
 
 typedef void* rtimu_t;

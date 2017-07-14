@@ -16,6 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef PLATFORM_H
+#define PLATFORM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #include <Limelight.h>
 
@@ -36,3 +43,10 @@ char* platform_name(enum platform system);
 
 void platform_start(enum platform system);
 void platform_stop(enum platform system);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

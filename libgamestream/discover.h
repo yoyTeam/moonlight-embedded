@@ -14,6 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef DISCOVER_H
+#define DISCOVER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #pragma once
 
@@ -22,3 +28,9 @@
 #define MAX_ADDRESS_SIZE 40
 
 void gs_discover_server(char* dest);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

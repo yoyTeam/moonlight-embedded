@@ -17,6 +17,14 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef CONNECTION_H
+#define CONNECTION_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <Limelight.h>
 
 #include <pthread.h>
@@ -25,3 +33,10 @@
 extern CONNECTION_LISTENER_CALLBACKS connection_callbacks;
 extern pthread_t main_thread_id;
 extern bool connection_debug;
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

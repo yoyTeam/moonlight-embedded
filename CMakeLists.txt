@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.1)
-project(moonlight-embedded VERSION 2.4.1 LANGUAGES C)
+project(moonlight-embedded VERSION 2.4.1)
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(${CMAKE_ROOT}/Modules/GNUInstallDirs.cmake)
 
 aux_source_directory(./src SRC_LIST)
-list(APPEND SRC_LIST ./src/input/evdev.c ./src/input/mapping.c ./src/input/udev.c ./src/input/rtimu.c ./src/input/imu.c)
+list(APPEND SRC_LIST ./src/input/evdev.c ./src/input/mapping.c ./src/input/udev.c ./src/input/imu.cpp)
 
 set(MOONLIGHT_DEFINITIONS)
 
@@ -146,16 +146,6 @@ if(BROADCOM_FOUND)
   install(TARGETS moonlight-pi DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
-IF(UNIX AND RTIMULIB_FOUND)
-    SET(YRTIMU_INCLUDE_DIR ./src/input/rtimu)
-
-    ADD_LIBRARY(YRTIMU SHARED ./src/input/rtimu/rtimu.cpp)
-    TARGET_INCLUDE_DIRECTORIES(YRTIMU PRIVATE ${RTIMULIB_INCLUDE_DIRS})
-    TARGET_LINK_LIBRARIES(YRTIMU ${RTIMULIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})    
-    SET_TARGET_PROPERTIES(YRTIMU PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES)
-    SET_TARGET_PROPERTIES(YRTIMU PROPERTIES SOVERSION ${SO_VERSION} VERSION ${PROJECT_VERSION})    
-    INSTALL(TARGETS YRTIMU DESTINATION ${CMAKE_INSTALL_LIBDIR})
-ENDIF()
 
 
 if(FREESCALE_FOUND)
@@ -203,8 +193,8 @@ endif()
 configure_file("./src/configuration.h.in" "${PROJECT_BINARY_DIR}/configuration.h")
 
 set_property(TARGET moonlight PROPERTY COMPILE_DEFINITIONS ${MOONLIGHT_DEFINITIONS})
-target_include_directories(moonlight PRIVATE ${GAMESTREAM_INCLUDE_DIR} ${MOONLIGHT_COMMON_INCLUDE_DIR} ${OPUS_INCLUDE_DIRS} ${EVDEV_INCLUDE_DIRS} ${UDEV_INCLUDE_DIRS} ${BROADCOM_INCLUDE_DIRS} ${YRTIMU_INCLUDE_DIR})
-target_link_libraries(moonlight ${EVDEV_LIBRARIES} ${OPUS_LIBRARY} ${UDEV_LIBRARIES} ${CMAKE_DL_LIBS}  ${BROADCOM_LIBRARIES} pthread rt m ${YRTIMU_LIBRARY})
+target_include_directories(moonlight PRIVATE ${GAMESTREAM_INCLUDE_DIR} ${MOONLIGHT_COMMON_INCLUDE_DIR} ${OPUS_INCLUDE_DIRS} ${EVDEV_INCLUDE_DIRS} ${UDEV_INCLUDE_DIRS} ${BROADCOM_INCLUDE_DIRS} ${RTIMULIB_INCLUDE_DIRS})
+target_link_libraries(moonlight ${EVDEV_LIBRARIES} ${OPUS_LIBRARY} ${UDEV_LIBRARIES} ${CMAKE_DL_LIBS}  ${BROADCOM_LIBRARIES} ${RTIMULIB_LIBRARIES} ${CMAKE_DL_LIBS} pthread rt m)
 
 add_subdirectory(docs)
 

@@ -18,12 +18,6 @@
  */
 
 #include "imu.h"
-
-#include "keyboard.h"
-
-#include "../loop.h"
-#include "libevdev/libevdev.h"
-
 #include <Limelight.h>
 
 #include <stdio.h>
@@ -31,22 +25,22 @@
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <limits.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <endian.h>
 
 #include <wiringPi.h>
+#include "RTIMULib.h"
 
-#include "rtimu.h"
+#include <pthread.h>
+
+//#include "rtimu.h"
 
 #define PINL 14
 #define PINR 4
 
-static rtimu_t *imu;
+#define IMU_RETURN 1
+#define IMU_OK 0
+
+//static rtimu_t *imu;
+RTIMU *imu;
 
 float prevYaw;
 float prevPitch;
@@ -63,47 +57,30 @@ int movY;
 int currentX = 1280 / 2;
 int currentY = 720 / 2;
 
-
-struct input_abs_parms {
-  int min, max;
-  int flat;
-  int avg;
-  int range, diff;
-};
-
-struct input_device {
-  struct libevdev *dev;
-  struct mapping* map;
-  int key_map[KEY_MAX];
-  int abs_map[ABS_MAX];
-  int hats_state[3][2];
-  int fd;
-  char modifiers;
-  __s32 mouseDeltaX, mouseDeltaY, mouseScroll;
-  short controllerId;
-  int buttonFlags;
-  char leftTrigger, rightTrigger;
-  short leftStickX, leftStickY;
-  short rightStickX, rightStickY;
-  bool gamepadModified;
-  struct input_abs_parms xParms, yParms, rxParms, ryParms, zParms, rzParms;
-};
-
-static bool (*handler) (struct input_event*, struct input_device*);
+static bool (*handler) ();
 
 static void evdev_remove(int devindex) {
   fprintf(stderr, "Removed imu device\n");
 }
 
-static bool imu_handle_event(struct input_event *ev, struct input_device *dev) {
-  //RTIMU_DATA imuData = imu->rtimu_get_IMUData();
-  yaw = rtimu_get_fusionPose_z(imu);
+static bool imu_handle_event() {
+  /*yaw = rtimu_get_fusionPose_z(imu);
   pitch = rtimu_get_fusionPose_y(imu);
   movX = ( prevYaw - rtimu_get_fusionPose_z(imu) ) * 4000;
   movY = ( prevPitch - rtimu_get_fusionPose_y(imu) ) * 4000;
 
   prevYaw = rtimu_get_fusionPose_z(imu);
   prevPitch = rtimu_get_fusionPose_y(imu);
+  */
+
+RTIMU_DATA imuData = imu->getIMUData();
+            yaw = imuData.fusionPose.z();
+            pitch = imuData.fusionPose.y();
+            movX = ( prevYaw - imuData.fusionPose.z() ) * 4000;
+            movY = ( prevPitch - imuData.fusionPose.y() ) * 4000;
+
+            prevYaw = imuData.fusionPose.z();
+            prevPitch = imuData.fusionPose.y();
 
   int sensX = 1.0;
   int sensY = 1.0;
@@ -139,15 +116,16 @@ static void imu_drain(void) {
   //pass
 }
 
-static int imu_handle(int fd) {
-  if(rtimu_read(imu)) {
-    if (!handler(NULL, NULL)) {
-      return LOOP_RETURN;
-    }
+static int imu_handle() {
+  //if(rtimu_read(imu)) {
+  if(imu->IMURead()) {
+      if (!handler()) {
+        return IMU_RETURN;
+      }
             
   }
 
-  return LOOP_OK;
+  return IMU_OK;
 }
 
 void imu_create(const char* device, struct mapping* mappings, bool verbose) {
@@ -173,7 +151,7 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
   //      RTIMUSettings *settings = new RTIMUSettings("<directory path>", "RTIMULib");
   //  where <directory path> is the path to where the .ini file is to be loaded/saved
 
-  rtimu_settings_t settings = rtimu_settings_new("RTIMULib");
+  /*rtimu_settings_t settings = rtimu_settings_new("RTIMULib");
 
   imu = rtimu_createIMU(settings);
 
@@ -194,26 +172,49 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
   rtimu_set_gyro_enable(true);
   rtimu_set_accel_enable(true);
   rtimu_set_compass_enable(false);
+  */
+
+  RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
+
+      imu = RTIMU::createIMU(settings);
+
+      if ((imu == NULL) || (imu->IMUType() == RTIMU_TYPE_NULL)) {
+          printf("No IMU found\n");
+          exit(1);
+      }
+
+      //  This is an opportunity to manually override any settings before the call IMUInit
+
+      //  set up IMU
+
+      imu->IMUInit();
+
+      //  this is a convenient place to change fusion parameters
+
+      imu->setSlerpPower(0.02);
+      imu->setGyroEnable(true);
+      imu->setAccelEnable(true);
+      imu->setCompassEnable(false);
+
 
   //  set up for rate timer
 
-  //rateTimer = displayTimer = RTMath::currentUSecsSinceEpoch();
-   
-  int fd = 66;
-  loop_add_fd(fd, &imu_handle, POLLIN);
+  //rateTimer = displayTimer = RTMath::currentUSecsSinceEpoch();  
+}
+
+void *imu_loop(void *unused) {
+  while(TRUE) {
+    int ret = imu_handle();
+    if (ret == IMU_RETURN) {
+      break;
+    }
+  }
 }
 
 void imu_start() {
-  // After grabbing, the only way to quit via the keyboard
-  // is via the special key combo that the input handling
-  // code looks for. For this reason, we wait to grab until
-  // we're ready to take input events. Ctrl+C works up until
-  // this point.
-  
-  // Any new input devices detected after this point will be grabbed immediately
-  //grabbingDevices = true;
-
-  // Handle input events until the quit combo is pressed
+  // Start rendering
+  pthread_t thread1;
+  pthread_create(&thread1, NULL, imu_loop, NULL);
 }
 
 void imu_stop() {

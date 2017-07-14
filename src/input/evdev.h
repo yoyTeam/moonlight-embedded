@@ -17,6 +17,13 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef EVDEV_H
+#define EVDEV_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mapping.h"
 
 void evdev_create(const char* device, struct mapping* mappings, bool verbose);
@@ -25,3 +32,9 @@ void evdev_loop();
 void evdev_init();
 void evdev_start();
 void evdev_stop();
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

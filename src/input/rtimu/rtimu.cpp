@@ -1,8 +1,11 @@
 #include "rtimu.h"
 
+#include "RTIMULib.h"
+
+/*
 rtimu_t rtimu_new() {
     return new RTIMU;
-}
+}*/
 
 void rtimu_destroy(rtimu_t rtimu) {
     RTIMU* imu = static_cast<RTIMU*>(rtimu);

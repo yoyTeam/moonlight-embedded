@@ -17,6 +17,13 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef VIDEO_H
+#define VIDEO_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <Limelight.h>
 
 #include <stdbool.h>
@@ -41,4 +48,10 @@ extern DECODER_RENDERER_CALLBACKS decoder_callbacks_x11_vdpau;
 #endif
 #ifdef HAVE_SDL
 extern DECODER_RENDERER_CALLBACKS decoder_callbacks_sdl;
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

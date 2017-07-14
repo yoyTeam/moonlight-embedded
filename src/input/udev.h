@@ -17,7 +17,20 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef UDEV_H
+#define UDEV_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mapping.h"
 
 void udev_init(bool autoload, struct mapping* mappings, bool verbose);
 void evdev_destroy();
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

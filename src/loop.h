@@ -16,6 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef LOOP_H
+#define LOOP_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define LOOP_RETURN 1
 #define LOOP_OK 0
@@ -26,3 +32,10 @@ void loop_add_fd(int fd, FdHandler handler, int events);
 void loop_remove_fd(int fd);
 
 void loop_main();
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

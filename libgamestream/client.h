@@ -17,6 +17,13 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef CLIENT_H
+#define CLIENT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #pragma once
 
 #include "xml.h"
@@ -47,3 +54,9 @@ int gs_applist(PSERVER_DATA server, PAPP_LIST *app_list);
 int gs_unpair(PSERVER_DATA server);
 int gs_pair(PSERVER_DATA server, char* pin);
 int gs_quit_app(PSERVER_DATA server);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

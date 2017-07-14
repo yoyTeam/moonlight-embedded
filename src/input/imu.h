@@ -19,7 +19,6 @@
 
 #include "mapping.h"
 void imu_create(const char* device, struct mapping* mappings, bool verbose);
-void imu_loop();
 
 void imu_init();
 void imu_start();

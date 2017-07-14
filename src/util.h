@@ -17,6 +17,20 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef UTILS_H
+#define UTILS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 
 int blank_fb(char *path, bool clear);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

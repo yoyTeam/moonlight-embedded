@@ -195,7 +195,7 @@ void *moonlight_streaming(void* arg) {
 
 //void* eglImage = NULL;
 
-  struct thread_args *args = arg;
+  struct thread_args *args = (struct thread_args*)arg;
 
   int i = 0;
   size_t n = 0;
@@ -223,7 +223,7 @@ void *moonlight_streaming(void* arg) {
     printf("Moonlight Embedded %d.%d.%d (%s)\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, COMPILE_OPTIONS);
 
   if (config.address == NULL) {
-    config.address = malloc(MAX_ADDRESS_SIZE);
+    config.address = (char*) malloc(MAX_ADDRESS_SIZE);
     if (config.address == NULL) {
       perror("Not enough memory");
       exit(-1);

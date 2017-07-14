@@ -17,6 +17,13 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef MAPPING_H
+#define MAPPING_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #pragma once
 
 #include <stdbool.h>
@@ -49,3 +56,9 @@ struct mapping {
 
 struct mapping* mapping_parse(char* mapping);
 struct mapping* mapping_load(char* fileName, bool verbose);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -17,6 +17,14 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <Limelight.h>
 
 #include <stdbool.h>
@@ -49,3 +57,10 @@ bool inputAdded;
 
 bool config_file_parse(char* filename, PCONFIGURATION config);
 void config_parse(int argc, char* argv[], PCONFIGURATION config);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

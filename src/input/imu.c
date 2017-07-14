@@ -36,13 +36,14 @@
 #include <pthread.h>
 #include <endian.h>
 
+#include <wiringPi.h>
 
 #include "rtimu.h"
 
 #define PINL 14
 #define PINR 4
 
-rtimu_t *imu = rtimu_init();
+rtimu_t *imu;
 
 float prevYaw;
 float prevPitch;
@@ -72,8 +73,8 @@ static bool imu_handle_event(struct input_event *ev, struct input_device *dev) {
   movX = ( prevYaw - rtimu_get_fusionPose_z(imu) ) * 4000;
   movY = ( prevPitch - rtimu_get_fusionPose_y(imu) ) * 4000;
 
-  prevYaw = rtimu_get_fusionPose_z();
-  prevPitch = rtimu_get_fusionPose_y();
+  prevYaw = rtimu_get_fusionPose_z(imu);
+  prevPitch = rtimu_get_fusionPose_y(imu);
 
   int sensX = 1.0;
   int sensY = 1.0;
@@ -102,35 +103,6 @@ static bool imu_handle_event(struct input_event *ev, struct input_device *dev) {
     LiSendMouseButtonEvent(value?BUTTON_ACTION_PRESS:BUTTON_ACTION_RELEASE, mouseCode);
   }
 
-  return true;
-}
-
-static bool evdev_handle_mapping_event(struct input_event *ev, struct input_device *dev) {
-  switch (ev->type) {
-  case EV_KEY:
-    if (currentKey != NULL) {
-      if (ev->value)
-        *currentKey = ev->code;
-      else if (ev->code == *currentKey)
-        return false;
-    }
-    break;
-  case EV_ABS:
-    if (currentAbs != NULL) {
-      struct input_abs_parms parms;
-      evdev_init_parms(dev, &parms, ev->code);
-
-      if (ev->value > parms.avg + parms.range/2) {
-        *currentAbs = ev->code;
-        *currentReverse = false;
-      } else if (ev->value < parms.avg - parms.range/2) {
-        *currentAbs = ev->code;
-        *currentReverse = true;
-      } else if (ev->code == *currentAbs)
-        return false;
-    }
-    break;
-  }
   return true;
 }
 
@@ -172,11 +144,11 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
   //      RTIMUSettings *settings = new RTIMUSettings("<directory path>", "RTIMULib");
   //  where <directory path> is the path to where the .ini file is to be loaded/saved
 
-  RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
+  rtimu_settings_t settings = rtimu_settings_new("RTIMULib");
 
-  imu = RTIMU::createIMU(settings);
+  imu = rtimu_createIMU(settings);
 
-  if ((imu == NULL) || (imu->IMUType() == RTIMU_TYPE_NULL)) {
+  if ((imu == NULL) || rtimu_type_is_null(imu)) {
       printf("No IMU found\n");
       return;
   }
@@ -185,14 +157,14 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
 
   //  set up IMU
 
-  imu->IMUInit();
+  rtimu_imu_init(imu);
 
   //  this is a convenient place to change fusion parameters
 
-  imu->setSlerpPower(0.02);
-  imu->setGyroEnable(true);
-  imu->setAccelEnable(true);
-  imu->setCompassEnable(false);
+  rtimu_set_slerp_power(0.02);
+  rtimu_set_gyro_enable(true);
+  rtimu_set_accel_enable(true);
+  rtimu_set_compass_enable(false);
 
   //  set up for rate timer
 
@@ -208,18 +180,13 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
   loop_add_fd(fd, &imu_handle, POLLIN);
 }
 
-void evdev_start() {
+void imu_start() {
   // After grabbing, the only way to quit via the keyboard
   // is via the special key combo that the input handling
   // code looks for. For this reason, we wait to grab until
   // we're ready to take input events. Ctrl+C works up until
   // this point.
-  for (int i = 0; i < numDevices; i++) {
-    if (ioctl(devices[i].fd, EVIOCGRAB, 1) < 0) {
-      fprintf(stderr, "EVIOCGRAB failed with error %d\n", errno);
-    }
-  }
-
+  
   // Any new input devices detected after this point will be grabbed immediately
   grabbingDevices = true;
 

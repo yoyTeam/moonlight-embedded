@@ -1,12 +1,23 @@
 #include "rtimu.h"
 
-rtimu_t rtimu_init() {
+rtimu_t rtimu_new() {
     return new RTIMU;
 }
 
 void rtimu_destroy(rtimu_t rtimu) {
-    rtimu_t* typed_ptr = static_cast<rtimut_t*>(rtimu);
-    delete typed_ptr;
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    delete imu;
+}
+
+EXTERNC static rtimu_t rtimu_createIMU(rtimu_settings_t settings) {
+    RTIMUSettings *msettings = static_cast<RTIMUSettings*>(settings);
+
+    return RTIMU::createIMU(msettings);
+}
+
+EXTERNC void rtimu_imu_init(rtimu_t rtimu) {
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    return imu->IMUInit();
 }
 
 
@@ -15,18 +26,50 @@ void rtimu_destroy(rtimu_t rtimu) {
     return typed_self->getIMUData();
 }*/
 
+
 EXTERNC float rtimu_get_fusionPose_x(rtimu_t rtimu) {
-    rtimu_t* typed_ptr = static_cast<rtimut_t*>(rtimu);
-    return typed_ptr->getIMUData().fusionPose.x();
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    return imu->getIMUData().fusionPose.x();
 }
 
 EXTERNC float rtimu_get_fusionPose_y(rtimu_t rtimu) {
-    rtimu_t* typed_ptr = static_cast<rtimut_t*>(rtimu);
-    return typed_ptr->getIMUData().fusionPose.y();
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    return imu->getIMUData().fusionPose.y();
 }
 
 EXTERNC float rtimu_get_fusionPose_z(rtimu_t rtimu) {
-    rtimu_t* typed_ptr = static_cast<rtimut_t*>(rtimu);
-    return typed_ptr->getIMUData().fusionPose.z();
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    return imu->getIMUData().fusionPose.z();
 }
 
+EXTERNC bool rtimu_type_is_null(rtimu_t rtimu) {
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    return (imu->IMUType() == RTIMU_TYPE_NULL);
+}
+
+EXTERNC void rtimu_set_slerp_power(float power) {
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    imu->setSlerpPower(power);  
+}
+
+EXTERNC void rtimu_set_gyro_enable(bool enable) {
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    imu->setGyroEnable(enable);  
+}
+
+EXTERNC void rtimu_set_accel_enable(bool enable) {
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    imu->setAccelEnable(enable);  
+}
+
+EXTERNC void rtimu_set_compass_enable(bool enable) {
+    RTIMU* imu = static_cast<RTIMU*>(rtimu);
+    imu->setCompassEnable(enable);
+}
+
+/* 
+* RTIMUSettings
+*/
+EXTERNC rtimu_settings_t rtimu_settings_new(const char *productType) {
+    return new RTIMUSettings("RTIMULib");
+}

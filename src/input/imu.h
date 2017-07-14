@@ -17,9 +17,24 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef IMU_H
+#define IMU_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "mapping.h"
 void imu_create(const char* device, struct mapping* mappings, bool verbose);
 
 void imu_init();
 void imu_start();
 void imu_stop();
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

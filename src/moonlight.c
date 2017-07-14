@@ -116,11 +116,11 @@ static void stream(PSERVER_DATA server, PCONFIGURATION config, enum platform sys
   LiStartConnection(&server->serverInfo, &config->stream, &connection_callbacks, platform_get_video(system), platform_get_audio(system, config->audio_device), NULL, drFlags, config->audio_device, 0, eglImage);
 
   if (IS_EMBEDDED(system)) {
-    //evdev_start();
+    evdev_start();
     imu_start();
     loop_main();
     imu_stop();
-    //evdev_stop();
+    evdev_stop();
   }
   #ifdef HAVE_SDL
   else if (system == SDL)
@@ -298,7 +298,7 @@ void *moonlight_streaming(void* arg) {
         mappings = map;
       }
 
-      /*
+      
       for (int i=0;i<config.inputsCount;i++) {
         if (config.debug_level > 0)
           printf("Add input %s...\n", config.inputs[i]);
@@ -311,8 +311,7 @@ void *moonlight_streaming(void* arg) {
       #ifdef HAVE_LIBCEC
       cec_init();
       #endif // HAVE_LIBCEC
-      */
-
+      
       imu_create(NULL, NULL, config.debug_level > 0);
       imu_init();
 

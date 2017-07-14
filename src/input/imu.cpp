@@ -180,7 +180,7 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
 
       if ((imu == NULL) || (imu->IMUType() == RTIMU_TYPE_NULL)) {
           printf("No IMU found\n");
-          exit(1);
+          return;
       }
 
       //  This is an opportunity to manually override any settings before the call IMUInit

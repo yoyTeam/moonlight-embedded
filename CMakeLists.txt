@@ -13,6 +13,7 @@ find_package(Opus REQUIRED)
 find_package(Broadcom)
 find_package(Freescale)
 find_package(Amlogic)
+find_package(RtimuLib REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(EVDEV REQUIRED libevdev)
@@ -55,16 +56,13 @@ endif()
 SET(MOONLIGHT_COMMON_INCLUDE_DIR ./third_party/moonlight-common-c/src)
 SET(GAMESTREAM_INCLUDE_DIR ./libgamestream)
 
-find_library(YRTIMU_LIBRARY
-  NAMES libyrtimu.so
-  DOC "Path to yRtimu Library"
-  PATHS /usr/local/lib)
-mark_as_advanced(YRTIMU_LIBRARY)
-SET(YRTIMU_INCLUDE_DIR ./third_party/yRtimu/include)
-
 if(NOT AMLOGIC_FOUND AND NOT BROADCOM_FOUND AND NOT FREESCALE_FOUND AND NOT SOFTWARE_FOUND)
   message(FATAL_ERROR "No video output available")
 endif()
+
+IF(NOT RTIMULIB_FOUND)
+    message(FATAL_ERROR "No rtimulib available")
+ENDIF()
 
 if (SOFTWARE_FOUND)
   list(APPEND SRC_LIST ./src/video/ffmpeg.c)
@@ -147,6 +145,18 @@ if(BROADCOM_FOUND)
   set_property(TARGET moonlight-pi PROPERTY COMPILE_DEFINITIONS ${BROADCOM_DEFINITIONS})
   install(TARGETS moonlight-pi DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
+
+IF(UNIX AND RTIMULIB_FOUND)
+    SET(YRTIMU_INCLUDE_DIR ./src/input/rtimu)
+
+    ADD_LIBRARY(YRTIMU SHARED ./src/input/rtimu/rtimu.cpp)
+    TARGET_INCLUDE_DIRECTORIES(YRTIMU PRIVATE ${RTIMULIB_INCLUDE_DIRS})
+    TARGET_LINK_LIBRARIES(YRTIMU ${RTIMULIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})    
+    SET_TARGET_PROPERTIES(YRTIMU PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES)
+    SET_TARGET_PROPERTIES(YRTIMU PROPERTIES SOVERSION ${SO_VERSION} VERSION ${PROJECT_VERSION})    
+    INSTALL(TARGETS YRTIMU DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ENDIF()
+
 
 if(FREESCALE_FOUND)
   list(APPEND MOONLIGHT_DEFINITIONS HAVE_IMX)

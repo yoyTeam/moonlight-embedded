@@ -79,7 +79,7 @@ static bool imu_handle_event() {
   currentX = (movX*sensX);
   currentY = (movY*sensY);
 
-  printf("\n (x, y): (%f, %f)", yaw, pitch);
+//  printf("\n (x, y): (%f, %f)", yaw, pitch);
 
   LiSendMouseMoveEvent(currentX, currentY);
 

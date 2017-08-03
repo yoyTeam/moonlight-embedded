@@ -143,8 +143,9 @@ static void stream(PSERVER_DATA server, PCONFIGURATION config, enum platform sys
   if (IS_EMBEDDED(system)) {
     evdev_start();
     imu_start();
-    esMainLoop ( &esContext );
     loop_main();
+    esMainLoop ( &esContext );
+    
     
    
       

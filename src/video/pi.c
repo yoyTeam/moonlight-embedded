@@ -56,7 +56,7 @@ static unsigned char *dest;
 static int port_settings_changed;
 static int first_packet;
 
-static void* eglImage = 0;
+static void* vEglImage = 0;
 static OMX_BUFFERHEADERTYPE *buf;
    
 
@@ -84,7 +84,7 @@ static int decoder_renderer_setup(int videoFormat, int width, int height, int re
       return -1;
   }
 
-  eglImage = teglImage;
+  vEglImage = teglImage;
 
   OMX_VIDEO_PARAM_PORTFORMATTYPE format;
   OMX_TIME_CONFIG_CLOCKSTATETYPE cstate;
@@ -210,6 +210,7 @@ static void decoder_renderer_cleanup() {
 }
 
 static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
+  printf("\n fucking decode render");
   if((buf = ilclient_get_input_buffer(video_decode, 130, 1)) == NULL){
     fprintf(stderr, "Can't get video buffer\n");
     return -2;
@@ -261,7 +262,7 @@ static int decoder_renderer_submit_decode_unit(PDECODE_UNIT decodeUnit) {
    	    return -2;
    	}
 
-    if (OMX_UseEGLImage(ILC_GET_HANDLE(egl_render), &eglBuffer, 221, NULL, eglImage) != OMX_ErrorNone)
+    if (OMX_UseEGLImage(ILC_GET_HANDLE(egl_render), &eglBuffer, 221, NULL, vEglImage) != OMX_ErrorNone)
    	{
    	    printf("OMX_UseEGLImage failed.\n");
    	    return -2;

@@ -80,7 +80,8 @@ static bool imu_handle_event() {
   currentX = (movX*sensX);
   currentY = (movY*sensY);
 
-//  printf("\n (x, y): (%f, %f)", yaw, pitch);
+ // printf("\n (x, y): (%f, %f)", movX, movY);
+// printf("\n (x, y): (%f, %f)", yaw, pitch);
 
   LiSendMouseMoveEvent(currentX, currentY);
 
@@ -177,7 +178,7 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
 void *imu_loop(void *unused) {
   while(TRUE) {
     int ret = imu_handle();
-    updateIMU(currentX, currentY);
+  //  updateIMU(currentX, currentY);
     if (ret == IMU_RETURN) {
       break;
     }

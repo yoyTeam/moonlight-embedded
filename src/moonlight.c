@@ -143,12 +143,12 @@ static void stream(PSERVER_DATA server, PCONFIGURATION config, enum platform sys
   if (IS_EMBEDDED(system)) {
     evdev_start();
     imu_start();
-    loop_main();
+    //loop_main();
     esMainLoop ( &esContext );
-    
-    
-   
-      
+    loop_main();
+
+
+
 
     imu_stop();
     evdev_stop();
@@ -225,10 +225,10 @@ int main(int argc, char* argv[]) {
   CONFIGURATION config;
   config_parse(argc, argv, &config);
 
-  
+
   if (config.action == NULL || strcmp("help", config.action) == 0)
     help();
-  
+
   if (config.debug_level > 0)
     printf("Moonlight Embedded %d.%d.%d (%s)\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, COMPILE_OPTIONS);
 
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
       exit(-1);
     }
   }
-  
+
   char host_config_file[128];
   sprintf(host_config_file, "hosts/%s.conf", config.address);
   if (access(host_config_file, R_OK) != -1)
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
 
     if (IS_EMBEDDED(system)) {
       esInitContext ( &esContext);
-      esCreateWindow ( &esContext, "Simple Texture 2D", 1280, 720, ES_WINDOW_RGB );
+      esCreateWindow ( &esContext, "Simple Texture 2D", 1080, 1920, ES_WINDOW_RGB );
       InitShaders ( &esContext, &eglImage  );
       esRegisterDrawFunc ( &esContext, DrawGL );
 
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
         mappings = map;
       }
 
-      
+
       for (int i=0;i<config.inputsCount;i++) {
         if (config.debug_level > 0)
           printf("Add input %s...\n", config.inputs[i]);
@@ -327,7 +327,7 @@ int main(int argc, char* argv[]) {
       #ifdef HAVE_LIBCEC
       cec_init();
       #endif // HAVE_LIBCEC
-      
+
       imu_create(NULL, NULL, config.debug_level > 0);
       imu_init();
     }

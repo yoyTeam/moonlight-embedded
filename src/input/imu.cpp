@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
+#include "../opengl.h"
 
 #include <wiringPi.h>
 #include "RTIMULib.h"
@@ -63,7 +64,7 @@ static void evdev_remove(int devindex) {
   fprintf(stderr, "Removed imu device\n");
 }
 
-static bool imu_handle_event() {  
+static bool imu_handle_event() {
   RTIMU_DATA imuData = imu->getIMUData();
   yaw = imuData.fusionPose.z();
   pitch = imuData.fusionPose.y();
@@ -79,14 +80,14 @@ static bool imu_handle_event() {
   currentX = (movX*sensX);
   currentY = (movY*sensY);
 
-  printf("\n (x, y): (%f, %f)", yaw, pitch);
+//  printf("\n (x, y): (%f, %f)", yaw, pitch);
 
   LiSendMouseMoveEvent(currentX, currentY);
 
   int tbuttonL = !digitalRead(PINL);
 	int tbuttonR = !digitalRead(PINR);
-  
-  int mouseCode = 0;      
+
+  int mouseCode = 0;
   int value;
   if(buttonL != tbuttonL) {
     mouseCode = BUTTON_LEFT;
@@ -116,7 +117,7 @@ static int imu_handle() {
         return IMU_RETURN;
       }
       usleep(1 * 1000);
-            
+
   }
 
   return IMU_OK;
@@ -132,8 +133,8 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
 
   if(verbose) {
     printf("Wiring Setup\n");
-  }		
-  
+  }
+
   //Init MPU stuffs
 
   uint64_t rateTimer;
@@ -144,7 +145,7 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
   //  Or, you can create the .ini in some other directory by using:
   //      RTIMUSettings *settings = new RTIMUSettings("<directory path>", "RTIMULib");
   //  where <directory path> is the path to where the .ini file is to be loaded/saved
- 
+
   RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
 
   imu = RTIMU::createIMU(settings);
@@ -170,12 +171,13 @@ void imu_create(const char* device, struct mapping* mappings, bool verbose) {
 
   //  set up for rate timer
 
-  //rateTimer = displayTimer = RTMath::currentUSecsSinceEpoch();  
+  //rateTimer = displayTimer = RTMath::currentUSecsSinceEpoch();
 }
 
 void *imu_loop(void *unused) {
   while(TRUE) {
     int ret = imu_handle();
+    updateIMU(currentX, currentY);
     if (ret == IMU_RETURN) {
       break;
     }

@@ -13,6 +13,8 @@ GLint  texCoordLoc;
 
 // Sampler location
 GLint samplerLoc;
+GLint offsetXLoc;
+GLint offsetYLoc;
 
 // Texture handle
 GLuint DtextureId;
@@ -27,6 +29,9 @@ static int glInited = 0;
 static void* eglImage = 0;
 struct thread_args *mArgs = 0;
 static pthread_t thread1;
+
+int movShaderX = 0;
+int movShaderY = 0;
 
 GLuint CreateTexture(ESContext *esContext)
 {
@@ -52,8 +57,8 @@ GLuint CreateTexture(ESContext *esContext)
    // Set the filtering mode
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 
    /* Create EGL Image */
@@ -69,7 +74,7 @@ GLuint CreateTexture(ESContext *esContext)
       printf("eglCreateImageKHR failed.\n");
       exit(1);
    }
-  
+
    // Start rendering
 //   pthread_create(&thread1, NULL, moonlight_streaming, mArgs);
 
@@ -98,9 +103,18 @@ GLuint InitShaders ( ESContext *esContext, void** teglImage )
       "precision mediump float;                            \n"
       "varying vec2 v_texCoord;                            \n"
       "uniform sampler2D s_texture;                        \n"
+      "uniform float offsetX;                        \n"
+      "uniform float offsetY;                        \n"
       "void main()                                         \n"
       "{                                                   \n"
-      "  gl_FragColor = texture2D( s_texture, v_texCoord ); \n"
+      "  vec2 finalCoord = v_texCoord + vec2(offsetX, offsetY); \n"
+      "  vec4 inputColor = texture2D( s_texture, finalCoord ); \n"
+      "  vec2 dist = (v_texCoord-0.5)*vec2(2.0,1.1);                   \n"
+      "  float len = length(dist);                         \n"
+      "  float radius = 1.0;                         \n"
+      "  float vignette = smoothstep(radius, radius-1.0, len);   \n"
+      "  gl_FragColor = inputColor;                             \n"
+      "  if( len>0.5 ) gl_FragColor = vec4(0,0,0,1);                            \n"
       "}                                                   \n";
 
    // Load the shaders and get a linked program object
@@ -112,15 +126,25 @@ GLuint InitShaders ( ESContext *esContext, void** teglImage )
 
    // Get the sampler location
    samplerLoc = glGetUniformLocation ( programObject, "s_texture" );
+   offsetXLoc = glGetUniformLocation ( programObject, "offsetX" );
+   offsetYLoc = glGetUniformLocation ( programObject, "offsetY" );
 
    // Load the texture
    DtextureId = CreateTexture (esContext);
 
-   glClearColor ( 0.5f, 0.5f, 0.5f, 1.0f );
+   glClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
 
    *teglImage = eglImage;
 
    return GL_TRUE;
+}
+
+void updateIMU ( int _currentX, int _currentY ){
+  movShaderX = _currentX;
+  movShaderY = _currentY;
 }
 
 ///
@@ -130,19 +154,33 @@ void DrawGL ( ESContext *esContext )
 {
 
    //UserData *userData = esContext->userData;
-   GLfloat vVertices[] = { -1.0f,  1.0f, 0.0f,  // Position 0
-                            0.0f,  0.0f,        // TexCoord 0
-                           -1.0f, -1.0f, 0.0f,  // Position 1
-                            0.0f,  1.0f,        // TexCoord 1
-                            1.0f, -1.0f, 0.0f,  // Position 2
-                            1.0f,  1.0f,        // TexCoord 2
-                            1.0f,  1.0f, 0.0f,  // Position 3
-                            1.0f,  0.0f         // TexCoord 3
-                         };
-   GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
-   // Set the viewport
-   glViewport ( 0, 0, 1280, 720); //esContext->width, esContext->height );
+    GLfloat vVertices[] = { 1.0f,  1.0f, 0.0f,  // Position 0
+                             0.25f,  0.0f,        // TexCoord 0
+                            -1.0f, 1.0f, 0.0f,  // Position 1
+                             0.25f,  1.0f,        // TexCoord 1
+                             -1.0f, 0.0f, 0.0f,  // Position 2
+                             0.75f,  1.0f,        // TexCoord 2
+                             1.0f,  0.0f, 0.0f,  // Position 3
+                             0.75f,  0.0f,         // TexCoord 3
+
+                             1.0f,  0.0f, 0.0f,  // Position 4
+                             0.25f,  0.0f,        // TexCoord 4
+                             -1.0f, 0.0f, 0.0f,  // Position 5
+                             0.25f,  1.0f,        // TexCoord 5
+                             -1.0f, -1.0f, 0.0f,  // Position 6
+                             0.75f,  1.0f,        // TexCoord 6
+                             1.0f,  -1.0f, 0.0f,  // Position 7
+                             0.75f,  0.0f         // TexCoord 7
+
+                          };
+
+    GLushort indices[] = { 0, 1, 2, 0, 2, 3,    4, 5, 6, 4, 6, 7 };
+
+
+    // Set the viewport
+    glViewport ( 0, 0, 1080, 1920); //esContext->width, esContext->height );
+
 
    // Clear the color buffer
    glClear ( GL_COLOR_BUFFER_BIT );
@@ -167,7 +205,12 @@ void DrawGL ( ESContext *esContext )
    // Set the sampler texture unit to 0
    glUniform1i ( samplerLoc, 0 );
 
-   glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
+   float scaleFactor = 0.0003;
+
+   glUniform1f ( offsetXLoc, (float)movShaderX*scaleFactor );
+   glUniform1f ( offsetYLoc, (float)movShaderY*scaleFactor );
+
+   glDrawElements ( GL_TRIANGLES, 12, GL_UNSIGNED_SHORT, indices );
 
 }
 

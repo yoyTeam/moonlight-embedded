@@ -12,6 +12,7 @@ GLuint CreateTexture(ESContext *esContext);
 GLuint InitShaders ( ESContext *esContext, void** teglImage );
 void DrawGL ( ESContext *esContext );
 void ShutDown ( ESContext *esContext );
+void updateIMU ( int _currentX, int _currentY );
 
 
 #ifdef __cplusplus
